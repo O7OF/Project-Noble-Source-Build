@@ -1149,6 +1149,7 @@ uint8_t s_localPicks[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t s_localEliteEffect = 0xFF;
 int s_localSet = -1;
 uint8_t s_localColors[4] = {1, 10, 14, 10};
+uint8_t s_localEmblem[8] = {0, 0, 0, 0, 0, 17, 0, 0};
 uint8_t s_localCustomFlags = 0;
 float s_localCustomRgb[4][3] = {};
 bool s_localSpeciesElite = false;   // appearance.json "species" == 1 (the local player's preferred species)
@@ -1209,6 +1210,14 @@ void RefreshLocalPicks() {
         readRgb("secondary_custom_rgb", s_localCustomRgb[1]);
         readRgb("accent_custom_rgb", s_localCustomRgb[2]);
         readRgb("lights_custom_rgb", s_localCustomRgb[3]);
+        s_localEmblem[0] = static_cast<uint8_t>(std::clamp(j.value("emblem_index", 0), 0, 255));
+        s_localEmblem[1] = static_cast<uint8_t>(std::clamp(j.value("emblem_background_index", 0), 0, 255));
+        s_localEmblem[2] = 0;
+        s_localEmblem[3] = static_cast<uint8_t>(std::clamp(j.value("emblem_primary_color", 0), 0, 29));
+        s_localEmblem[4] = static_cast<uint8_t>(std::clamp(j.value("emblem_secondary_color", 0), 0, 29));
+        s_localEmblem[5] = static_cast<uint8_t>(std::clamp(j.value("emblem_background_color", 17), 0, 29));
+        s_localEmblem[6] = 0;
+        s_localEmblem[7] = 0;
 
         NOBLE_INFO("ElitePack: Armory Elite pieces {} {} {} {} {} {} (set {}), colors {}/{}/{}/{}",
                    s_localPicks[0], s_localPicks[1], s_localPicks[2], s_localPicks[3],
@@ -1305,6 +1314,12 @@ void __fastcall RecordSetHook(uint8_t* player, uint8_t* block) {
 void __fastcall ApplyProfileHook(int settingsIndex, uint8_t* player) {
     if (s_applyProfileOriginal) s_applyProfileOriginal(settingsIndex, player);
     if (settingsIndex >= 0 && settingsIndex < 16) s_localSettingsIndex.store(settingsIndex);
+    if (player) {
+        std::lock_guard<std::mutex> lock(s_picksMutex);
+        RefreshLocalPicks();
+        std::memcpy(player + 0x9E, s_localEmblem, 8);
+        std::memcpy(player + kPlayerRecordOffset + 0x08, s_localEmblem, 8);
+    }
 }
 
 // Inspects the player datum associated with an appearance record to verify if it belongs
@@ -1337,6 +1352,11 @@ uint64_t __fastcall BuilderHook(uint8_t* record, uint32_t mode, void* unit, void
     if (record && s_recordsLogged.fetch_add(1) < 12)
         NOBLE_INFO("ElitePack: appearance record (caller 0x{:X}, mode {}, elite {}, local {}):{}",
                    caller, mode, elite, localRecord, Hex(record, 0x28));
+    if (localRecord && record) {
+        std::lock_guard<std::mutex> lock(s_picksMutex);
+        RefreshLocalPicks();
+        std::memcpy(record + 0x08, s_localEmblem, 8);
+    }
     if (!elite || !s_loaded || !s_haveActive) return s_builder(record, mode, unit, player);
 
     alignas(8) uint8_t copy[0x28];

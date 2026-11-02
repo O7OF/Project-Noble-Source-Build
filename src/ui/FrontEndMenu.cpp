@@ -529,18 +529,18 @@ void Draw(const Ui& ui, ID3D11Device* device, ID3D11DeviceContext* context, floa
     float k = 1.45f;
     constexpr float kFocusX = 0.590f;   // character centre in the engine frame (0x0C / 0x0B)
     float kFocusY = 0.505f;
-    float targetY = ui.origin.y + H * 0.62f;
+    float targetY = ui.origin.y + H * 0.50f;
 
     if (cameraMode == 2) {
         // CLOSE-UP: zoom into upper torso, helmet and visor!
-        k = 2.15f;
+        k = 1.75f;
         kFocusY = isElite ? 0.380f : 0.365f;
-        targetY = ui.origin.y + H * 0.56f;
+        targetY = ui.origin.y + H * 0.50f;
     } else {
         // FULL BODY (mode 1) and ARMORY VIEW (mode 0)
         k = 1.45f;
         kFocusY = 0.505f;
-        targetY = ui.origin.y + H * 0.62f;
+        k = 1.15f; kFocusY = isElite ? 0.510f : 0.520f; targetY = ui.origin.y + H * 0.50f;
     }
 
     const float targetX = ui.origin.x + W * kStageX;
@@ -568,7 +568,28 @@ void Draw(const Ui& ui, ID3D11Device* device, ID3D11DeviceContext* context, floa
             ui.dl->PathFillConvex(step);
         }
     };
-    glow(ImVec2(ui.origin.x + W * kStageX, p0.y + H * k * 0.84f), H * 0.40f, H * 0.055f, 10);
+    glow(ImVec2(ui.origin.x + W * kStageX, p0.y + H * k * 0.85f), H * 0.36f, H * 0.048f, 10);
+    // Project the player's configured emblem onto the Spartan chest/shoulder emblem patch in the 3D Armory viewer when facing forward.
+    if (!isElite) {
+        const auto& customizer = UIManager::GetArmorCustomizer();
+        const auto& prof = customizer.GetProfile();
+        const float yaw = ReachArmory::GetYawRotation();
+        const float cosY = std::cos(yaw + 0.32f);
+        if (cosY > 0.20f) {
+            const float sinY = std::sin(yaw + 0.32f);
+            const float patchSize = H * k * (cameraMode == 2 ? 0.026f : 0.022f);
+            const float cx = targetX - W * k * (0.018f + sinY * 0.032f);
+            const float cy = p0.y + H * k * (cameraMode == 2 ? 0.345f : 0.318f);
+            UiArt::EmblemColors ec = customizer.EmblemColorsNow();
+            const uint8_t alpha = static_cast<uint8_t>(std::clamp(cosY * 215.0f, 0.0f, 215.0f));
+            ec.primary = (ec.primary & 0x00FFFFFFu) | (static_cast<ImU32>(alpha) << 24);
+            ec.secondary = (ec.secondary & 0x00FFFFFFu) | (static_cast<ImU32>(alpha) << 24);
+            ec.background = (ec.background & 0x00FFFFFFu) | (static_cast<ImU32>(alpha) << 24);
+            UiArt::DrawEmblem(ui.dl, prof.emblemIndex, prof.emblemBackgroundIndex,
+                              ImVec2(cx - patchSize * 0.5f * cosY, cy - patchSize * 0.5f),
+                              ImVec2(cx + patchSize * 0.5f * cosY, cy + patchSize * 0.5f), ec);
+        }
+    }
     ui.dl->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 
     // The panels on the left sit on a dark edge, and the picture's left end doesn't show as a seam.

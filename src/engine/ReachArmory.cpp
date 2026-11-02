@@ -1040,6 +1040,224 @@ static void ScanEliteTable() {
 // -----------------------------------------------------------------------------
 // Write Colors & Suit Shaders (ported from write_colors @ 0x1401b5ad0 & write_suit @ 0x1400468e0)
 // -----------------------------------------------------------------------------
+static void UpdateTagShaderConstantsSEH(bool previewElite,
+                                        const uint32_t words[4],
+                                        const float accentRgb[3],
+                                        const float undersuitRgb[3],
+                                        const float visorRgb[3]) {
+    HMODULE hReach = GetModuleHandleW(L"haloreach.dll");
+    if (!hReach) return;
+    const uintptr_t base = reinterpret_cast<uintptr_t>(hReach);
+    __try {
+        uint8_t* tagTable = *reinterpret_cast<uint8_t* const*>(base + 0xC1A600);
+        if (!tagTable) return;
+        using TagAtFn = uint8_t*(__fastcall*)(uint16_t);
+        auto TagAt = reinterpret_cast<TagAtFn>(base + 0x4E39F20);
+
+        for (int ti = 0; ti < 16384; ++ti) {
+            uint8_t* te = tagTable + static_cast<size_t>(ti) * 0x18;
+            const uint32_t magic = *reinterpret_cast<const uint32_t*>(te + 0x14);
+            if (magic != 0x726D7368u) continue; // 'rmsh'
+            uint8_t* rmsh = TagAt(static_cast<uint16_t>(ti));
+            if (!rmsh) continue;
+            const int32_t spCount = *reinterpret_cast<const int32_t*>(rmsh + 0x1C);
+            const uint32_t spPacked = *reinterpret_cast<const uint32_t*>(rmsh + 0x20);
+            if (spCount <= 0 || spCount > 8 || (spPacked >> 28) != 4u) continue;
+            uint8_t* spBase = tagTable + static_cast<uintptr_t>(spPacked & 0x0FFFFFFFu) * 4u;
+            for (int si = 0; si < spCount; ++si) {
+                uint8_t* sp = spBase + static_cast<size_t>(si) * 0xAC;
+                const int32_t f4Count = *reinterpret_cast<const int32_t*>(sp + 0x1C);
+                const uint32_t f4Packed = *reinterpret_cast<const uint32_t*>(sp + 0x20);
+                if (f4Count <= 0 || f4Count > 64 || (f4Packed >> 28) != 4u) continue;
+                float* f4 = reinterpret_cast<float*>(tagTable + static_cast<uintptr_t>(f4Packed & 0x0FFFFFFFu) * 4u);
+
+                if (!previewElite) {
+                    // 1) spartan_armor (26 float4s, f4[1][0] == 3.0f):
+                    //    f4[22] (+0x160) = self_illum_color (Armor Lights on legs, back, and chest -> Colors > Accent)
+                    if (f4Count == 26 && std::abs(f4[1 * 4 + 0] - 3.0f) < 0.1f && std::abs(f4[23 * 4 + 0] - 1.0f) < 0.1f) {
+                        f4[22 * 4 + 0] = accentRgb[0] * 2.2f;
+                        f4[22 * 4 + 1] = accentRgb[1] * 2.2f;
+                        f4[22 * 4 + 2] = accentRgb[2] * 2.2f;
+                        f4[22 * 4 + 3] = 1.0f;
+                    }
+                    // 2) spartan_rubber_suit (21 float4s, f4[1][0] == 18.0f):
+                    //    f4[2] (+0x20) = albedo_color, f4[9] (+0x90) = material_color_0, f4[10] (+0xA0) = material_color_1
+                    else if (f4Count == 21 && std::abs(f4[1 * 4 + 0] - 18.0f) < 0.1f) {
+                        f4[2 * 4 + 0] = undersuitRgb[0];
+                        f4[2 * 4 + 1] = undersuitRgb[1];
+                        f4[2 * 4 + 2] = undersuitRgb[2];
+                        f4[2 * 4 + 3] = 1.0f;
+                        f4[9 * 4 + 0] = undersuitRgb[0] * 0.85f + 0.05f;
+                        f4[9 * 4 + 1] = undersuitRgb[1] * 0.85f + 0.05f;
+                        f4[9 * 4 + 2] = undersuitRgb[2] * 0.85f + 0.05f;
+                        f4[9 * 4 + 3] = 1.0f;
+                        f4[10 * 4 + 0] = undersuitRgb[0] * 0.45f + 0.02f;
+                        f4[10 * 4 + 1] = undersuitRgb[1] * 0.45f + 0.02f;
+                        f4[10 * 4 + 2] = undersuitRgb[2] * 0.45f + 0.02f;
+                        f4[10 * 4 + 3] = 1.0f;
+                    }
+                    // 3) spartan_helmet_interior_visor (21 float4s, f4[1][0] == 3.0f, f4[8][0] == 1.0f):
+                    //    f4[17] (+0x110) = visor specular/env tint, f4[6] (+0x60) & f4[7] (+0x70) = visor reflection tint
+                    else if (f4Count == 21 && std::abs(f4[1 * 4 + 0] - 3.0f) < 0.1f && std::abs(f4[8 * 4 + 0] - 1.0f) < 0.1f) {
+                        f4[6 * 4 + 0] = visorRgb[0] * 0.85f + 0.15f;
+                        f4[6 * 4 + 1] = visorRgb[1] * 0.85f + 0.15f;
+                        f4[6 * 4 + 2] = visorRgb[2] * 0.85f + 0.15f;
+                        f4[6 * 4 + 3] = 1.0f;
+                        f4[7 * 4 + 0] = visorRgb[0] * 0.70f + 0.30f;
+                        f4[7 * 4 + 1] = visorRgb[1] * 0.70f + 0.30f;
+                        f4[7 * 4 + 2] = visorRgb[2] * 0.70f + 0.30f;
+                        f4[7 * 4 + 3] = 1.0f;
+                        f4[17 * 4 + 0] = visorRgb[0];
+                        f4[17 * 4 + 1] = visorRgb[1];
+                        f4[17 * 4 + 2] = visorRgb[2];
+                        f4[17 * 4 + 3] = 1.0f;
+                    }
+                    // 4) Secondary visor material (24 float4s, f4[1][0] == 10.0f):
+                    //    f4[9] (+0x90) & f4[10] (+0xA0) = visor gold/reflection tint
+                    else if (f4Count == 24 && std::abs(f4[1 * 4 + 0] - 10.0f) < 0.1f) {
+                        f4[9 * 4 + 0] = visorRgb[0];
+                        f4[9 * 4 + 1] = visorRgb[1];
+                        f4[9 * 4 + 2] = visorRgb[2];
+                        f4[9 * 4 + 3] = 1.0f;
+                        f4[10 * 4 + 0] = visorRgb[0] * 0.55f + 0.10f;
+                        f4[10 * 4 + 1] = visorRgb[1] * 0.55f + 0.10f;
+                        f4[10 * 4 + 2] = visorRgb[2] * 0.55f + 0.10f;
+                        f4[10 * 4 + 3] = 1.0f;
+                    }
+                }
+            }
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+    }
+    (void)words;
+}
+
+static void SyncArmoryLiveBipedEngineTickSEH(bool previewElite,
+                                             bool isFemale,
+                                             int32_t remadeCounter,
+                                             const float priRgb[3],
+                                             const float secRgb[3],
+                                             const float accRgb[3],
+                                             const float litRgb[3],
+                                             const float visRgb[3],
+                                             int accentColorIndex) {
+    HMODULE hReach = GetModuleHandleW(L"haloreach.dll");
+    if (!hReach) return;
+    const uintptr_t base = reinterpret_cast<uintptr_t>(hReach);
+    __try {
+        const uint32_t tlsIdx = *reinterpret_cast<const uint32_t*>(base + 0xC17B18);
+        const uintptr_t tlsArray = *reinterpret_cast<const uintptr_t*>(__readgsqword(0x58) + static_cast<uintptr_t>(tlsIdx) * 8u);
+        if (!tlsArray) return;
+        uint8_t* objTable = *reinterpret_cast<uint8_t* const*>(tlsArray + 0x10);
+        uint8_t* tagTable = *reinterpret_cast<uint8_t* const*>(base + 0xC1A600);
+        if (!objTable || !tagTable) return;
+
+        using TagAtFn = uint8_t*(__fastcall*)(uint16_t);
+        using SetChangeColorFn = uint8_t(__fastcall*)(uint32_t, int32_t, const float*);
+        using BipedSetGenderFn = void(__fastcall*)(uint32_t, uint8_t);
+        using ApplyModelStatePropFn = void(__fastcall*)(uint32_t, uint16_t);
+
+        auto TagAt = reinterpret_cast<TagAtFn>(base + 0x4E39F20);
+        auto SetChangeColor = reinterpret_cast<SetChangeColorFn>(base + 0x473858);
+        auto BipedSetGender = reinterpret_cast<BipedSetGenderFn>(base + 0x49BB84);
+        auto ApplyModelStateProp = reinterpret_cast<ApplyModelStatePropFn>(base + 0x472C68);
+
+        uint16_t maleProp = 0xFFFFu;
+        uint16_t femaleProp = 0xFFFFu;
+        for (int ti = 0; ti < 16384; ++ti) {
+            uint8_t* te = tagTable + static_cast<size_t>(ti) * 0x18;
+            if (*reinterpret_cast<const uint32_t*>(te + 0x14) == 0x706D6367u) { // 'pmcg'
+                uint8_t* pmcg = TagAt(static_cast<uint16_t>(ti));
+                if (pmcg) {
+                    maleProp = *reinterpret_cast<const uint16_t*>(pmcg + 0x98);
+                    femaleProp = *reinterpret_cast<const uint16_t*>(pmcg + 0xA4);
+                }
+                break;
+            }
+        }
+
+        const float slot0[3] = { priRgb[0], priRgb[1], priRgb[2] };
+        const float slot1[3] = { secRgb[0], secRgb[1], secRgb[2] };
+        const float slot2[3] = {
+            previewElite ? accRgb[0] : litRgb[0],
+            previewElite ? accRgb[1] : litRgb[1],
+            previewElite ? accRgb[2] : litRgb[2]
+        };
+        const float slot3[3] = {
+            previewElite ? (accentColorIndex != 0 ? accRgb[0] : priRgb[0]) : visRgb[0],
+            previewElite ? (accentColorIndex != 0 ? accRgb[1] : priRgb[1]) : visRgb[1],
+            previewElite ? (accentColorIndex != 0 ? accRgb[2] : priRgb[2]) : visRgb[2]
+        };
+        const float* const wantSlots[4] = { slot0, slot1, slot2, slot3 };
+
+        const int32_t maxObjects = std::clamp(*reinterpret_cast<const int32_t*>(objTable + 0x44), 0, 2048);
+        uint8_t* entries = *reinterpret_cast<uint8_t* const*>(objTable + 0x50);
+        if (!entries) return;
+
+        static uint32_t s_lastGenderBipeds[16] = {};
+        static uint8_t s_lastGenderApplied = 0xFFu;
+        static int32_t s_lastGenderRemade = -999999;
+        const uint8_t wantFemale = isFemale ? 1u : 0u;
+        const bool resetGenderCache = (s_lastGenderApplied != wantFemale || s_lastGenderRemade != remadeCounter);
+        if (resetGenderCache) {
+            std::memset(s_lastGenderBipeds, 0, sizeof(s_lastGenderBipeds));
+            s_lastGenderApplied = wantFemale;
+            s_lastGenderRemade = remadeCounter;
+        }
+
+        for (int32_t i = 0; i < maxObjects; ++i) {
+            uint8_t* entry = entries + static_cast<size_t>(i) * 0x18;
+            const uint16_t salt = *reinterpret_cast<const uint16_t*>(entry + 0x00);
+            if (salt == 0) continue;
+            const uint8_t objType = entry[0x04];
+            if (objType != 0) continue; // 0 == biped
+            uint8_t* objPtr = *reinterpret_cast<uint8_t* const*>(entry + 0x10);
+            if (!objPtr) continue;
+            const uint32_t objectDatum = (static_cast<uint32_t>(salt) << 16) | static_cast<uint32_t>(i);
+
+            // 1. Update live biped change_colors (base + active slots 0..3)
+            const int16_t ccSize = *reinterpret_cast<const int16_t*>(objPtr + 0x188);
+            const int16_t ccOffset = *reinterpret_cast<const int16_t*>(objPtr + 0x18A);
+            if (ccSize >= 24 && ccOffset > 0 && ccOffset < 0x2000) {
+                const int32_t slotCount = (ccSize / 12) / 2;
+                float* ccBase = reinterpret_cast<float*>(objPtr + ccOffset);
+                float* ccActive = ccBase + slotCount * 3;
+                const int32_t nSlots = std::min<int32_t>(slotCount, 4);
+                for (int32_t s = 0; s < nSlots; ++s) {
+                    const float* w = wantSlots[s];
+                    float* b = ccBase + s * 3;
+                    float* a = ccActive + s * 3;
+                    if (std::abs(b[0] - w[0]) > 1e-4f || std::abs(b[1] - w[1]) > 1e-4f || std::abs(b[2] - w[2]) > 1e-4f ||
+                        std::abs(a[0] - w[0]) > 1e-4f || std::abs(a[1] - w[1]) > 1e-4f || std::abs(a[2] - w[2]) > 1e-4f) {
+                        b[0] = w[0]; b[1] = w[1]; b[2] = w[2];
+                        a[0] = w[0]; a[1] = w[1]; a[2] = w[2];
+                        SetChangeColor(objectDatum, s, w);
+                    }
+                }
+            }
+
+            // 2. Update Male vs Female body type on Spartan bipeds
+            if (!previewElite) {
+                bool alreadySet = false;
+                int freeSlot = -1;
+                for (int k = 0; k < 16; ++k) {
+                    if (s_lastGenderBipeds[k] == objectDatum) { alreadySet = true; break; }
+                    if (s_lastGenderBipeds[k] == 0 && freeSlot < 0) freeSlot = k;
+                }
+                if (!alreadySet) {
+                    if (freeSlot >= 0) s_lastGenderBipeds[freeSlot] = objectDatum;
+                    BipedSetGender(objectDatum, wantFemale);
+                    const uint16_t prop = isFemale ? femaleProp : maleProp;
+                    if (prop != 0xFFFFu) {
+                        ApplyModelStateProp(objectDatum, prop);
+                    }
+                }
+            }
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+    }
+}
+
 static void WriteColorsAndSuit(const ReachArmorySelection& sel) {
     const uint32_t priArgb = LinearRgbToArgbU32(sel.primaryRgb);
     const uint32_t secArgb = LinearRgbToArgbU32(sel.secondaryRgb);
@@ -1093,7 +1311,17 @@ static void WriteColorsAndSuit(const ReachArmorySelection& sel) {
     s_lastSpartanSecArgb = secArgb;
     s_lastSpartanVisArgb = visArgb;
 
-    s_lastSuitFloats = { suitFloats[0], suitFloats[1], suitFloats[2], suitFloats[3] };
+    if (!sel.previewElite) {
+        s_lastSuitFloats = { sel.lightsRgb[0], sel.lightsRgb[1], sel.lightsRgb[2], 1.0f };
+    } else {
+        s_lastSuitFloats = { suitFloats[0], suitFloats[1], suitFloats[2], suitFloats[3] };
+    }
+    const float visFloats[3] = {
+        (sel.visor == "default" || sel.visor.empty()) ? 0.78f : sel.visorRgb[0],
+        (sel.visor == "default" || sel.visor.empty()) ? 0.63f : sel.visorRgb[1],
+        (sel.visor == "default" || sel.visor.empty()) ? 0.40f : sel.visorRgb[2]
+    };
+    UpdateTagShaderConstantsSEH(sel.previewElite, words.data(), sel.accentRgb.data(), sel.lightsRgb.data(), visFloats);
 
     if (!sel.previewElite) {
         s_colorRecords.erase(
@@ -1130,6 +1358,19 @@ static void WriteColorsAndSuit(const ReachArmorySelection& sel) {
             if (!SafeCopyMem(cur, reinterpret_cast<const void*>(suit), sizeof(cur))) return true;
             for (int i = 0; i < 4; ++i) {
                 if (!std::isfinite(cur[i]) || cur[i] < 0.0f || cur[i] > 6.0f) return true;
+            }
+            if (!sel.previewElite) {
+                const float suitAlbedo[4] = { sel.lightsRgb[0], sel.lightsRgb[1], sel.lightsRgb[2], 1.0f };
+                const float suitMat0[4] = { sel.lightsRgb[0] * 0.85f + 0.05f, sel.lightsRgb[1] * 0.85f + 0.05f, sel.lightsRgb[2] * 0.85f + 0.05f, 1.0f };
+                const float suitMat1[4] = { sel.lightsRgb[0] * 0.45f + 0.02f, sel.lightsRgb[1] * 0.45f + 0.02f, sel.lightsRgb[2] * 0.45f + 0.02f, 1.0f };
+                float m0[4] = {}, m1[4] = {};
+                if (SafeCopyMem(m0, reinterpret_cast<const void*>(suit + 0x70), sizeof(m0)) && std::abs(m0[3] - 1.0f) < 0.01f) {
+                    SafeWriteFloats(suit + 0x70, suitMat0, 4);
+                }
+                if (SafeCopyMem(m1, reinterpret_cast<const void*>(suit + 0x80), sizeof(m1)) && std::abs(m1[3] - 1.0f) < 0.01f) {
+                    SafeWriteFloats(suit + 0x80, suitMat1, 4);
+                }
+                return !SafeWriteFloats(suit, suitAlbedo, 4);
             }
             return !SafeWriteFloats(suit, suitFloats, 4);
         }),
@@ -1748,6 +1989,26 @@ void ReachArmory::Tick() {
         const int32_t sceneIdx = ResolveSceneIndex(sceneName);
         ApplyGlobalsAndPermutations(sceneIdx, sceneName);
     }
+}
+
+void ReachArmory::NotifyEngineTick() {
+    if (!s_menuMode.load() || s_globalsBase.load() == 0) return;
+    const ReachArmorySelection sel = GetSelection();
+    const float visFloats[3] = {
+        (sel.visor == "default" || sel.visor.empty()) ? 0.78f : sel.visorRgb[0],
+        (sel.visor == "default" || sel.visor.empty()) ? 0.63f : sel.visorRgb[1],
+        (sel.visor == "default" || sel.visor.empty()) ? 0.40f : sel.visorRgb[2]
+    };
+    SyncArmoryLiveBipedEngineTickSEH(
+        sel.previewElite,
+        sel.isFemale,
+        s_lastRemade.load(),
+        sel.primaryRgb.data(),
+        sel.secondaryRgb.data(),
+        sel.accentRgb.data(),
+        sel.lightsRgb.data(),
+        visFloats,
+        sel.accentColorIndex);
 }
 
 } // namespace noble

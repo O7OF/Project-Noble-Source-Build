@@ -59,6 +59,25 @@ $release = Join-Path $build 'bin\Release'
 $clientExe = Join-Path $release 'noble-client.exe'
 if (-not (Test-Path $clientExe)) { throw 'missing noble-client.exe' }
 
+# Preserve existing user settings, keybinds, identity, and appearance into %APPDATA%\ProjectNoble\data
+$appDataNoble = Join-Path $env:APPDATA 'ProjectNoble\data'
+$appDataUser = Join-Path $appDataNoble 'userdata'
+New-Item -ItemType Directory -Force -Path $appDataUser | Out-Null
+foreach ($srcData in @((Join-Path $Destination 'data'), (Join-Path $release 'data'), (Join-Path $repo 'data'))) {
+    if (-not (Test-Path $srcData)) { continue }
+    foreach ($rel in @('userdata\settings.json', 'userdata\identity.json', 'appearance.dat')) {
+        $srcFile = Join-Path $srcData $rel
+        $dstFile = Join-Path $appDataNoble $rel
+        if (Test-Path $srcFile) {
+            if (-not (Test-Path $dstFile) -or ((Get-Item $srcFile).LastWriteTimeUtc -gt (Get-Item $dstFile).LastWriteTimeUtc)) {
+                $dstDir = Split-Path -Parent $dstFile
+                if (-not (Test-Path $dstDir)) { New-Item -ItemType Directory -Force -Path $dstDir | Out-Null }
+                Copy-Item $srcFile $dstFile -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+}
+
 # Clean build directory of any stale nested duplicates, user data, armor, blocks, or master server scripts
 foreach ($bad in @(
     (Join-Path $release 'data\data'),

@@ -82,6 +82,7 @@ public:
 
     // Called every frame on the engine render thread inside HostSlot1_FrameTick.
     static void Tick();
+    static void NotifyEngineTick();
 
     // True once mainmenu_all.map HS GLOBALS table is active.
     static bool IsSceneReady();

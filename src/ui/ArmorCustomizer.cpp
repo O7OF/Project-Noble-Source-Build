@@ -1017,7 +1017,7 @@ void ArmorCustomizer::UpdateArmoryCamera() const {
         ReachArmory::SetTargetScene("armory_elite");
         return;
     }
-    if (m_cameraMode == 0) ReachArmory::SetTargetScene("armory");
+    if (m_cameraMode == 0 || m_cameraMode == 1) ReachArmory::SetTargetScene("armory");
     else ReachArmory::SetTargetScene("c_full_spartan");
 }
 
@@ -1195,6 +1195,7 @@ void ArmorCustomizer::SyncToReachArmory() const {
 bool ArmorCustomizer::LoadProfile(const std::filesystem::path& path) {
     m_profilePath = path.empty() ? ResolveDefaultProfilePath() : path;
     m_visorSelection = -1;
+    DeviceIdentityStore::MigrateNewestFile("appearance.dat");
     if (!std::filesystem::exists(m_profilePath)) {
         SyncLegacyFields();
         m_previewSpecies = m_profile.species;

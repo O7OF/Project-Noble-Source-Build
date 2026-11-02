@@ -646,6 +646,36 @@ static uint64_t __fastcall HostSlot33_DisplayQuality(void* thisPtr, uint64_t a1,
 // actions 0..65. The keys below are MCC's default PC layout (actions 62..65 are unbound).
 static constexpr size_t kBindingTableOffset = 0x42C;
 static constexpr size_t kBindingEntrySize = 0x18;
+static void ApplyBindingsToEngineSEH(uintptr_t base, const uint8_t* profile) {
+    using ApplyBindingsFn = void(__fastcall*)(int32_t userIndex, const uint8_t* prof);
+    __try {
+        reinterpret_cast<ApplyBindingsFn>(base + 0x2C8DFC)(0, profile);
+        uint8_t* pool = reinterpret_cast<uint8_t*>(base + 0xEC6EA0);
+        for (int slot = 0; slot < 4; ++slot) {
+            uint8_t* ps = pool + slot * 0x1018;
+            if (*reinterpret_cast<const uint32_t*>(ps + 0x04) == 2) {
+                *reinterpret_cast<uint32_t*>(ps + 0x0C) = 0;
+                *reinterpret_cast<uint32_t*>(ps + 0x00) |= 0xC00u;
+            }
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+static void WriteEngineEmblemAndDirtySEH(uintptr_t base, const uint8_t emblem[8]) {
+    using SetEmblemFn = void(__fastcall*)(uint8_t* ps, const uint8_t* emb);
+    __try {
+        uint8_t* pool = reinterpret_cast<uint8_t*>(base + 0xEC6EA0);
+        for (int slot = 0; slot < 4; ++slot) {
+            uint8_t* ps = pool + slot * 0x1018;
+            if (*reinterpret_cast<const uint32_t*>(ps + 0x04) == 2) {
+                reinterpret_cast<SetEmblemFn>(base + 0x2C7FF4)(ps, emblem);
+                *reinterpret_cast<uint32_t*>(ps + 0x0C) = 0;
+                *reinterpret_cast<uint32_t*>(ps + 0x00) |= 0xC00u;
+            }
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
 static void WriteDefaultKeyBindings(uint8_t* profile) {
     const SettingsData settings = Settings::Get().Snapshot();
     for (uint32_t action = 0; action < 66; ++action) {
@@ -655,6 +685,7 @@ static void WriteDefaultKeyBindings(uint8_t* profile) {
         const uint32_t vk = static_cast<uint32_t>(it != settings.keyOverrides.end() ? it->second
                                                                                   : KeyBindings::DefaultKey(static_cast<int>(action)));
         const uint32_t none = 0;
+        memset(entry, 0, kBindingEntrySize);
         memcpy(entry + 0, &action, sizeof(action));
         memcpy(entry + 4, &vk, sizeof(vk));
         memcpy(entry + 8, &none, sizeof(none));
@@ -673,6 +704,18 @@ static void WriteDefaultKeyBindings(uint8_t* profile) {
     if (down >= 0 && down < 66) {
         const uint32_t code = down == up ? 0xAF : 0xAE;
         memcpy(profile + kBindingTableOffset + down * kBindingEntrySize + 8, &code, sizeof(code));
+    }
+    static uint8_t s_lastAppliedTable[66 * kBindingEntrySize] = {};
+    static bool s_hasAppliedTable = false;
+    if (!s_hasAppliedTable || std::memcmp(s_lastAppliedTable, profile + kBindingTableOffset, sizeof(s_lastAppliedTable)) != 0) {
+        std::memcpy(s_lastAppliedTable, profile + kBindingTableOffset, sizeof(s_lastAppliedTable));
+        s_hasAppliedTable = true;
+        if (HMODULE hReach = GetModuleHandleW(L"haloreach.dll")) {
+            ApplyBindingsToEngineSEH(reinterpret_cast<uintptr_t>(hReach), profile);
+            NOBLE_INFO("ReachHost [Slot 34]: Live-applied updated keyboard & mouse bindings to haloreach.dll");
+        }
+    }
+    if (false) {
     }
 }
 
@@ -1054,6 +1097,20 @@ static void ApplyArmoryAppearance(uint8_t* profile) {
         // +0xA0 is the third/detail colour ("accent"); Reach has no third picker in the stock Armory, but
         // the profile field exists (RR: Steel) and the Armory's third colour word follows it.
         put(0xA0, kColor + accentColor);
+
+        const uint8_t emblem8[8] = {
+            static_cast<uint8_t>(num(appearance, "emblem_index", 0, 255, 0)),
+            static_cast<uint8_t>(num(appearance, "emblem_background_index", 0, 255, 0)),
+            0u, // bit0 = toggle secondary layer (0 = show secondary layer)
+            static_cast<uint8_t>(num(appearance, "emblem_primary_color", 0, 29, 0)),
+            static_cast<uint8_t>(num(appearance, "emblem_secondary_color", 0, 29, 0)),
+            static_cast<uint8_t>(num(appearance, "emblem_background_color", 0, 29, 17)),
+            0u,
+            0u
+        };
+        if (HMODULE hReach = GetModuleHandleW(L"haloreach.dll")) {
+            WriteEngineEmblemAndDirtySEH(reinterpret_cast<uintptr_t>(hReach), emblem8);
+        }
 
         const std::string armoryTag = str(appearance, "service_tag");
         if (!armoryTag.empty()) {
@@ -1598,6 +1655,19 @@ static void FillLocalInput(uint8_t* st) {
     const bool insertDown = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
     if (insertDown && !s_insertWasDown && !uiPointer && !PauseMenu::IsGameOver()) ForgeMenu::Toggle();
     s_insertWasDown = insertDown;
+
+    ReachArmory::NotifyEngineTick();
+    if (s_hostProfileInitialized && s_profileBuiltIn) {
+        static ULONGLONG s_lastLiveSync = 0;
+        const ULONGLONG syncNow = GetTickCount64();
+        if (syncNow - s_lastLiveSync >= 250) {
+            s_lastLiveSync = syncNow;
+            WriteDefaultKeyBindings(s_hostProfileBuffer);
+            WritePadLookSettings(s_hostProfileBuffer);
+            WriteDefaultVolumes(s_hostProfileBuffer);
+            RefreshArmoryAppearance(s_hostProfileBuffer);
+        }
+    }
 
     // While the pause menu, post-game panel or custom palette is up the game gets no keys or mouse, and the pointer is free.
     static bool s_holdMouseUntilRelease = false;

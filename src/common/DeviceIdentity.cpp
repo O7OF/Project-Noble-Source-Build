@@ -251,7 +251,7 @@ void MirrorSaveFile(const std::filesystem::path &relativeFilePath) {
     if (dest == primary)
       continue;
     // Mirror to dir if the dir exists or parent exists
-    if (std::filesystem::exists(dir, ec)) {
+    if (dir == dirs.back() || std::filesystem::exists(dir, ec)) {
       if (dest.has_parent_path()) {
         std::filesystem::create_directories(dest.parent_path(), ec);
       }

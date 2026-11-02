@@ -140,7 +140,7 @@ private:
 
     // 0 = Standard Armory 3/4 view ("armory"), 1 = Full Body ("c_full_spartan"), 2 = close-up of the slot being edited
     // ("c_helmet", ...; default, Armory v2). The mouse wheel over the model switches between them.
-    int m_cameraMode = 2;
+    int m_cameraMode = 1;
     std::string m_focusScene = "c_full_spartan";   // close-up scene for the focused slot
     bool m_pickerScrollToEquipped = true;
 

@@ -330,7 +330,7 @@ void SettingsPanel::Render() {
 
 bool SettingsPanel::DiscardOnEscape() {
     if (TotalChanges() == 0) return false;
-    Discard();
+    Apply(); // Auto-save on Escape/Back so settings & keybinds are never silently lost.
     return true;
 }
 
@@ -1180,6 +1180,8 @@ void SettingsPanel::PollRebind() {
             if (vk == KeyBindings::DefaultKey(m_rebindAction)) m_edit.keyOverrides.erase(m_rebindAction);
             else m_edit.keyOverrides[m_rebindAction] = vk;
             m_rebindAction = -1;
+            Settings::Get().Update(m_edit);
+            m_saved = Settings::Get().Snapshot();
             MenuSounds::Click();
             return;
         }
@@ -1206,12 +1208,14 @@ void SettingsPanel::KeyBindValue(int action) {
     if (right) {
         if (def == 0) m_edit.keyOverrides.erase(action);
         else m_edit.keyOverrides[action] = 0;
+        Settings::Get().Update(m_edit);
+        m_saved = Settings::Get().Snapshot();
     } else if ((clicked && !ImGui::IsMouseReleased(ImGuiMouseButton_Right)) || (m_rowFocused && m_keyAccept)) {
         m_rebindAction = action;
         m_rebindStarted = ImGui::GetTime();
         m_focus = m_curRow;
     }
-    if (m_rowFocused && m_navAllowed && ImGui::IsKeyPressed(ImGuiKey_Delete, false)) m_edit.keyOverrides.erase(action);
+    if (m_rowFocused && m_navAllowed && ImGui::IsKeyPressed(ImGuiKey_Delete, false)) { m_edit.keyOverrides.erase(action); Settings::Get().Update(m_edit); m_saved = Settings::Get().Snapshot(); }
     DrawBox(ImGui::GetWindowDrawList(), b0, b1, keyText.c_str(), hovered, current != def || m_rebindAction == action, false);
     ImGui::SetCursorScreenPos(save);
 }
@@ -1252,7 +1256,7 @@ void SettingsPanel::RenderKeyboardMouse() {
         const int n = static_cast<int>(std::size(kWheelActions));
         int idx = 0;
         for (int i = 0; i < n; ++i) if (kWheelActions[i] == action) idx = i;
-        if (const int d = CycleValue(wheelName(action).c_str(), idx, n)) action = kWheelActions[(idx + d + n) % n];
+        if (const int d = CycleValue(wheelName(action).c_str(), idx, n)) { action = kWheelActions[(idx + d + n) % n]; Settings::Get().Update(m_edit); m_saved = Settings::Get().Snapshot(); }
     };
     wheelRow("WHEEL UP", m_edit.wheelUpAction, m_saved.wheelUpAction);
     wheelRow("WHEEL DOWN", m_edit.wheelDownAction, m_saved.wheelDownAction);
@@ -1731,6 +1735,8 @@ int SettingsPanel::TotalChanges() const {
 
 void SettingsPanel::RestoreDefaults(Cat c) {
     m_edit = WithDefaults(m_edit, c);
+    Settings::Get().Update(m_edit);
+    m_saved = Settings::Get().Snapshot();
     std::snprintf(m_nameBuf, sizeof(m_nameBuf), "%s", m_edit.playerName.c_str());
     std::snprintf(m_tagBuf, sizeof(m_tagBuf), "%s", m_edit.serviceTag.c_str());
     std::snprintf(m_masterBuf, sizeof(m_masterBuf), "%s", m_edit.masterServerUrl.c_str());
