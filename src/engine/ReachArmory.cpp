@@ -1142,8 +1142,10 @@ static void WriteColorsAndSuit(const ReachArmorySelection& sel) {
 // -----------------------------------------------------------------------------
 // "-armory-settle-rebuild": rebuild the biped a second time after each change (test switch; off by default).
 static bool SingleRebuild() {
-    static const bool settle = std::wcsstr(GetCommandLineW(), L"-armory-settle-rebuild") != nullptr;
-    return !settle;
+    static const bool single = std::wcsstr(GetCommandLineW(), L"-armory-single-rebuild") != nullptr; return single;
+    // (settled on next remade tick)
+    // Settle rebuild is on by default unless -armory-single-rebuild is set.
+    // (settled on next remade tick)
 }
 
 // -----------------------------------------------------------------------------
@@ -1200,6 +1202,32 @@ static void EnsurePmcgLoaded() {
             NOBLE_INFO("ReachArmory: {} Armory items -> model regions from '{}'", items, entry.path().string());
             return;
         }
+    }
+    size_t embPmcgSize = 0;
+    if (const uint8_t* embPmcg = EmbeddedBlocks::GetBlock("spartan.rrpmcg", &embPmcgSize); embPmcg && embPmcgSize > 0) {
+        std::stringstream in{ std::string(reinterpret_cast<const char*>(embPmcg), embPmcgSize) };
+        std::string line, list, item;
+        size_t items = 0;
+        while (std::getline(in, line)) {
+            if (!line.empty() && line.back() == '\r') line.pop_back();
+            char kind = line.empty() ? 0 : line[0];
+            std::vector<std::string> f;
+            size_t i = 0;
+            while (i < line.size()) {
+                while (i < line.size() && line[i] == ' ') ++i;
+                size_t j = i;
+                while (j < line.size() && line[j] != ' ') ++j;
+                if (j > i) f.push_back(line.substr(i, j - i));
+                i = j;
+            }
+            if (kind == 'L' && f.size() >= 2) { list = f[1]; }
+            else if (kind == 'S' && f.size() >= 2) { item = list + ":" + f[1]; s_pmcg[item]; ++items; }
+            else if (kind == 'C' && f.size() >= 3 && !item.empty()) {
+                s_pmcg[item].push_back({ f[1], f[2], f.size() >= 4 ? std::atoi(f[3].c_str()) : 0 });
+            }
+        }
+        NOBLE_INFO("ReachArmory: {} Armory items -> model regions from embedded 'spartan.rrpmcg'", items);
+        return;
     }
     NOBLE_WARN("ReachArmory: no data\\armor\\*.rrpmcg; Armory items go to the 3D model by name only (attachments won't show)");
 }

@@ -1614,6 +1614,10 @@ void ArmorCustomizer::RenderCharacterPreview(ID3D11Device* device, ID3D11DeviceC
     if (ImGui::IsItemHovered()) {
         const float wheel = ImGui::GetIO().MouseWheel;
         if (std::abs(wheel) > 0.01f) {
+            ReachArmory::AddYawRotation(wheel * 0.2617994f);
+            m_objYaw += wheel * 0.2617994f;
+        }
+        if (false) {
             if (wheel > 0.0f) m_cameraMode = 2;
             else m_cameraMode = (m_cameraMode == 2) ? 1 : 0;
             UpdateArmoryCamera();
@@ -2697,7 +2701,7 @@ void ArmorCustomizer::Render(ID3D11Device* device, ID3D11DeviceContext* context)
 
     // ---- Over the model: camera toggle badge & controls.
     const char* cam = m_cameraMode == 2 ? "CLOSE-UP" : m_cameraMode == 1 ? "FULL BODY" : "ARMORY VIEW";
-    const std::string hint = std::string("Camera: ") + cam + "   |   Press C, Click, or Wheel to toggle";
+    const std::string hint = std::string("Camera: ") + cam + "   |   Press C or Click to toggle, Wheel/Drag to rotate";
     const ImVec2 badgePos(previewX + 16.0f * s, origin.y + avail.y - 30.0f * s);
     const ImVec2 badgeSize(TextW(smallFont, 14.0f * s, hint.c_str()) + 20.0f * s, 24.0f * s);
     ImGui::SetCursorScreenPos(badgePos);

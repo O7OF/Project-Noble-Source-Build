@@ -118,3 +118,4 @@ MAINMENU_ALL_STRING_IDS_CSV RCDATA "../../data/menumaps/mainmenu_all.string_ids.
 MAINMENU_ARMORY_STRING_IDS_CSV RCDATA "../../data/menumaps/mainmenu_armory.string_ids.csv"
 MAINMENU_ARMORY_ELITE_STRING_IDS_CSV RCDATA "../../data/menumaps/mainmenu_armory_elite.string_ids.csv"
 MAINMENU_ALL_MAP RCDATA "../../data/menumaps/mainmenu_all.map"
+SPARTAN_RRPMCG RCDATA "../../data/armor/spartan.rrpmcg"

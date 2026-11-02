@@ -1129,7 +1129,17 @@ static uint64_t __fastcall HostSlot34_ProfileSettings(void* thisPtr, uint64_t a1
             if (embProfile && pSize > 0) {
                 size_t toCopy = std::min(pSize, sizeof(s_hostProfileBuffer));
                 std::memcpy(s_hostProfileBuffer, embProfile, toCopy);
+                NOBLE_INFO("ReachHost [Slot 34]: loaded base profile from embedded resource 'profile_1.bin' ({} bytes)", pSize);
+            } else {
+                WriteDefaultLookSettings(s_hostProfileBuffer);
+            }
+            WriteDefaultKeyBindings(s_hostProfileBuffer);
+            WritePadLookSettings(s_hostProfileBuffer);
+            WriteDefaultVolumes(s_hostProfileBuffer);
+            loaded = true;
+            s_profileBuiltIn = true;
                 loaded = true;
+            if (false) {
                 NOBLE_INFO("ReachHost [Slot 34]: loaded authentic profile from embedded resource 'profile_1.bin' ({} bytes)", pSize);
             }
         }
@@ -1149,7 +1159,7 @@ static uint64_t __fastcall HostSlot34_ProfileSettings(void* thisPtr, uint64_t a1
         memcpy(s_hostProfileBuffer + 0x1AC, serviceTag, sizeof(serviceTag));
         RefreshArmoryAppearance(s_hostProfileBuffer, true);
         s_hostProfileInitialized = true;
-        s_profileBuiltIn = !loaded;
+        // s_profileBuiltIn stays true unless -profile was supplied on CLI
         // Test option "-profile-set <hex offset>=<hex byte>[,...]": patch profile bytes (used to find
         // what the controller look bytes at +0x1B4.. do; see FillLocalPad and -fake-pad).
         {
