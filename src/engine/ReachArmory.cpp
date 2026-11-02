@@ -147,6 +147,63 @@ static bool s_stringIdsLoaded = false;
 static std::unordered_map<std::string, uint32_t> s_stringIds;
 
 // mainmenu_all.map HS GLOBALS table address and stride (in bytes, from {4, 8, 12, 16, 24, 32})
+enum RrGlobalSlot : size_t {
+    kRrMarkA     = 0x00, // [00 /  0] rr_mark_a      type=8  flags=0 init=-2146886507 (0x03BB6FED)
+    kRrMarkB     = 0x01, // [01 /  1] rr_mark_b      type=8  flags=0 init=-2146558822 (0x03BAB653)
+    kRrSeq       = 0x02, // [02 /  2] rr_seq         type=8  flags=0 init=-2146231137
+    kRrDone      = 0x03, // [03 /  3] rr_done        type=8  flags=0 init=-2145903452
+    kRrR0        = 0x04, // [04 /  4] rr_r0          type=11 flags=0 init=-2145575767
+    kRrP0        = 0x05, // [05 /  5] rr_p0          type=11 flags=0 init=-2145248082
+    kRrR1        = 0x06, // [06 /  6] rr_r1          type=11 flags=0 init=-2144920397
+    kRrP1        = 0x07, // [07 /  7] rr_p1          type=11 flags=0 init=-2144592712
+    kRrR2        = 0x08, // [08 /  8] rr_r2          type=11 flags=0 init=-2144265027
+    kRrP2        = 0x09, // [09 /  9] rr_p2          type=11 flags=0 init=-2143937342
+    kRrR3        = 0x0A, // [0a / 10] rr_r3          type=11 flags=0 init=-2143609657
+    kRrP3        = 0x0B, // [0b / 11] rr_p3          type=11 flags=0 init=-2143281972
+    kRrR4        = 0x0C, // [0c / 12] rr_r4          type=11 flags=0 init=-2142954287
+    kRrP4        = 0x0D, // [0d / 13] rr_p4          type=11 flags=0 init=-2142626602
+    kRrR5        = 0x0E, // [0e / 14] rr_r5          type=11 flags=0 init=-2142298917
+    kRrP5        = 0x0F, // [0f / 15] rr_p5          type=11 flags=0 init=-2141971232
+    kRrR6        = 0x10, // [10 / 16] rr_r6          type=11 flags=0 init=-2141643547
+    kRrP6        = 0x11, // [11 / 17] rr_p6          type=11 flags=0 init=-2141315862
+    kRrR7        = 0x12, // [12 / 18] rr_r7          type=11 flags=0 init=-2140988177
+    kRrP7        = 0x13, // [13 / 19] rr_p7          type=11 flags=0 init=-2140660492
+    kRrR8        = 0x14, // [14 / 20] rr_r8          type=11 flags=0 init=-2140332807
+    kRrP8        = 0x15, // [15 / 21] rr_p8          type=11 flags=0 init=-2140005122
+    kRrR9        = 0x16, // [16 / 22] rr_r9          type=11 flags=0 init=-2139677437
+    kRrP9        = 0x17, // [17 / 23] rr_p9          type=11 flags=0 init=-2139349752
+    kRrR10       = 0x18, // [18 / 24] rr_r10         type=11 flags=0 init=-2139022067
+    kRrP10       = 0x19, // [19 / 25] rr_p10         type=11 flags=0 init=-2138694382
+    kRrR11       = 0x1A, // [1a / 26] rr_r11         type=11 flags=0 init=-2138366697
+    kRrP11       = 0x1B, // [1b / 27] rr_p11         type=11 flags=0 init=-2138039012
+    kRrR12       = 0x1C, // [1c / 28] rr_r12         type=11 flags=0 init=-2137711327
+    kRrP12       = 0x1D, // [1d / 29] rr_p12         type=11 flags=0 init=-2137383642
+    kRrR13       = 0x1E, // [1e / 30] rr_r13         type=11 flags=0 init=-2137055957
+    kRrP13       = 0x1F, // [1f / 31] rr_p13         type=11 flags=0 init=-2136728272
+    kRrR14       = 0x20, // [20 / 32] rr_r14         type=11 flags=0 init=-2136400587
+    kRrP14       = 0x21, // [21 / 33] rr_p14         type=11 flags=0 init=-2136072902
+    kRrR15       = 0x22, // [22 / 34] rr_r15         type=11 flags=0 init=-2135745217
+    kRrP15       = 0x23, // [23 / 35] rr_p15         type=11 flags=0 init=-2135417532
+    kRrScene     = 0x24, // [24 / 36] rr_scene       type=8  flags=0 init=-2135089847
+    kRrSceneDone = 0x25, // [25 / 37] rr_scene_done  type=8  flags=0 init=-2134762162
+    kRrElite     = 0x26, // [26 / 38] rr_elite       type=8  flags=0 init=-2134434477
+    kRrTurn      = 0x27, // [27 / 39] rr_turn        type=8  flags=0 init=-2134106792
+    kRrTurnDone  = 0x28, // [28 / 40] rr_turn_done   type=8  flags=0 init=-2133779107
+    kRrTurnD     = 0x29, // [29 / 41] rr_turn_d      type=8  flags=0 init=-2133451422
+    kRrC         = 0x2A, // [2a / 42] rr_c           type=6  flags=0 init=-2133123737
+    kRrS         = 0x2B, // [2b / 43] rr_s           type=6  flags=0 init=-2132796052
+    kRrSpun      = 0x2C, // [2c / 44] rr_spun        type=8  flags=0 init=-2132468367
+    kRrPose      = 0x2D, // [2d / 45] rr_pose        type=8  flags=0 init=-2132140682
+    kRrPoseDone  = 0x2E, // [2e / 46] rr_pose_done   type=8  flags=0 init=-2131812997
+    kRrSg        = 0x2F, // [2f / 47] rr_sg          type=5  flags=0 init=-2131485312
+    kRrFxn       = 0x30, // [30 / 48] rr_fxn         type=11 flags=0 init=-2131157627
+    kRrFxp       = 0x31, // [31 / 49] rr_fxp         type=11 flags=0 init=-2130829942
+    kRrRemade    = 0x32, // [32 / 50] rr_remade      type=8  flags=0 init=-2130502257
+    kRrCardDone  = 0x33, // [33 / 51] rr_card_done   type=8  flags=0 init=-2130174572
+    kRrSlotCount = 0x34
+};
+static constexpr uint32_t kRrMarkAVal = 0x03BB6FEDu;
+static constexpr uint32_t kRrMarkBVal = 0x03BAB653u;
 static std::atomic<uintptr_t> s_globalsBase{0};
 static std::atomic<size_t> s_globalsStride{12};
 
@@ -239,6 +296,11 @@ static void EnsureStringIdsLoaded() {
         std::ifstream loose(s_dataDir / "menumaps" / "mainmenu_all.string_ids.csv");
         if (loose) {
             const size_t loaded = parseCsvStream(loose);
+            static const char* const kExtraCsvs[] = { "mainmenu_armory.string_ids.csv", "mainmenu_armory_elite.string_ids.csv" };
+            for (const char* extra : kExtraCsvs) {
+                std::ifstream extraIn(s_dataDir / "menumaps" / extra);
+                if (extraIn) parseCsvStream(extraIn);
+            }
             NOBLE_INFO("ReachArmory: Loaded {} string_ids from loose mainmenu_all CSV", loaded);
             return;
         }
@@ -251,6 +313,14 @@ static void EnsureStringIdsLoaded() {
         std::string_view sv(reinterpret_cast<const char*>(embeddedData), embeddedSize);
         std::stringstream ss{ std::string(sv) };
         size_t loaded = parseCsvStream(ss);
+        static const char* const kExtraCsvs[] = { "mainmenu_armory.string_ids.csv", "mainmenu_armory_elite.string_ids.csv" };
+        for (const char* extra : kExtraCsvs) {
+            size_t extraSize = 0;
+            if (const uint8_t* extraData = EmbeddedBlocks::GetBlock(extra, &extraSize); extraData && extraSize > 0) {
+                std::stringstream extraSs{ std::string(reinterpret_cast<const char*>(extraData), extraSize) };
+                parseCsvStream(extraSs);
+            }
+        }
         NOBLE_INFO("ReachArmory: Loaded {} string_ids from embedded resource", loaded);
         return;
     }
@@ -381,7 +451,7 @@ static std::atomic<uint64_t> s_globalsMarkerHits{0};
 static bool IsNewMenuLayout() {
     EnsureStringIdsLoaded();
     ArmoryLock lock(s_dataMutex);
-    return LookupStringId("flair_head_a") != 0 || s_stringIds.size() < 32100;
+    return s_stringIds.size() < 32100;   // mainmenu_all.string_ids.csv has 32,213 names
 }
 
 static int GlobalsSlotFor(uintptr_t base, size_t stride, uint32_t id) {
@@ -424,7 +494,16 @@ static bool ScanGlobalsTable() {
             if (SafeCopyMem(buf.data(), reinterpret_cast<const void*>(base), size)) {
                 for (size_t off = 0; off + 0xC0 <= size; off += 4) {
                     const uint32_t v0 = *reinterpret_cast<const uint32_t*>(buf.data() + off);
-                    if (v0 != 0x03BB6FEDu) continue;
+                    if (v0 != kRrMarkAVal) continue;
+                    // Skip the scenario hs_syntax_nodes initialization block (0xff82d40: 0x00090008, 0xffffffff,
+                    // 0x0001ad2e, 0x03bb6fed, 0x00000311, 0xbaba0000, 0xbabababa...) where rr_mark_a..rr_card_done
+                    // init expression nodes (-2146886507..-2130174572) sit 5 syntax nodes (120 bytes) apart.
+                    if (off >= 12 && off + 16 <= size &&
+                        *reinterpret_cast<const uint32_t*>(buf.data() + off - 12) == 0x00090008u &&
+                        *reinterpret_cast<const uint32_t*>(buf.data() + off - 8)  == 0xFFFFFFFFu &&
+                        *reinterpret_cast<const uint32_t*>(buf.data() + off + 8)  == 0xBABA0000u) {
+                        continue;
+                    }
                     ++s_globalsMarkerHits;
 
                     for (size_t stride : kStrides) {
@@ -432,7 +511,8 @@ static bool ScanGlobalsTable() {
                         const uint32_t v1 = *reinterpret_cast<const uint32_t*>(buf.data() + off + stride);
                         const uint32_t v4 = *reinterpret_cast<const uint32_t*>(buf.data() + off + stride * 4);
                         const uint32_t v5 = *reinterpret_cast<const uint32_t*>(buf.data() + off + stride * 5);
-                        if (v1 == 0x03BAB653u && (v4 == headId || v5 == defaultId)) {
+                        if (v1 == kRrMarkBVal &&
+                            (v4 == headId || v5 == defaultId || (v4 > 0 && v4 < 0x10000u && v5 > 0 && v5 < 0x10000u))) {
                             const uintptr_t foundBase = base + off;
                             s_globalsStride.store(stride);
                             s_globalsBase.store(foundBase);
@@ -1263,6 +1343,11 @@ static void ApplyGlobalsAndPermutations(int32_t targetSceneIdx, const std::strin
     }
     const uint64_t frameNow = s_frameCounter.load();
     auto bumpRebuild = [&](const char* why) {
+        if (!showElite && std::strcmp(why, "new pieces") == 0) {
+            // Invalidate rr_fxp (GLOBALS[0x31]) so rr_armory's (!= rr_fxn rr_fxp) check recreates
+            // chief_armory & chief cleanly (clearing any previous attachment regions) and increments rr_remade (GLOBALS[0x32]).
+            SafeWriteU32(base + kRrFxp * stride, 0u);
+        }
         int32_t rebuildCounter = 0;
         SafeReadI32(base + 0x02 * stride, &rebuildCounter);
         SafeWriteI32(base + 0x02 * stride, rebuildCounter + 1);
@@ -1376,7 +1461,11 @@ static void ApplyGlobalsAndPermutations(int32_t targetSceneIdx, const std::strin
         // The imported RR mainmenu_all has a different GLOBALS layout: head at 4, chest at 2,
         // flair_head/chest at 24..34 and shoulders at 36/38. Resolve each region's own slot instead
         // of assuming the legacy 0x04, 0x06, ... layout.
-        const bool dynamicLayout = GlobalsSlotFor(base, stride, LookupStringId("flair_head_a")) >= 20;
+        uint32_t m0 = 0, m1 = 0;
+        const bool hasRrMarkers = SafeReadU32(base + kRrMarkA * stride, &m0) &&
+                                  SafeReadU32(base + kRrMarkB * stride, &m1) &&
+                                  m0 == kRrMarkAVal && m1 == kRrMarkBVal;
+        const bool dynamicLayout = !hasRrMarkers && (GlobalsSlotFor(base, stride, LookupStringId("flair_head_a")) >= 20);
         std::vector<std::pair<uint32_t, uint32_t>> writtenPairs;
         std::vector<uint32_t> writtenSlots;
         if (!pairs.empty()) {

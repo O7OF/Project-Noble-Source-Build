@@ -149,6 +149,7 @@ set(SOURCES
     src/hooks/ForgePatches.cpp
     src/hooks/EnginePatches.cpp
     src/vfs/VFS.cpp
+    src/engine/EmbeddedBlocks.cpp
     src/engine/BlamEngine.cpp
     src/engine/ReachHost.cpp
     src/engine/ReachArmory.cpp
@@ -333,6 +334,7 @@ set(DEDICATED_SOURCES
     src/hooks/LobbyPatches.cpp
     src/hooks/ForgePatches.cpp
     src/vfs/VFS.cpp
+    src/engine/EmbeddedBlocks.cpp
     src/network/UPnP.cpp
     src/network/SessionManager.cpp
 )

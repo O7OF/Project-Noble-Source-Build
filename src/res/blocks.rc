@@ -115,4 +115,6 @@ FIREFIGHT_219_D2_BIN RCDATA "../../data/blocks/firefight_219_d2.bin"
 FIREFIGHT_219_D3_BIN RCDATA "../../data/blocks/firefight_219_d3.bin"
 
 MAINMENU_ALL_STRING_IDS_CSV RCDATA "../../data/menumaps/mainmenu_all.string_ids.csv"
+MAINMENU_ARMORY_STRING_IDS_CSV RCDATA "../../data/menumaps/mainmenu_armory.string_ids.csv"
+MAINMENU_ARMORY_ELITE_STRING_IDS_CSV RCDATA "../../data/menumaps/mainmenu_armory_elite.string_ids.csv"
 MAINMENU_ALL_MAP RCDATA "../../data/menumaps/mainmenu_all.map"

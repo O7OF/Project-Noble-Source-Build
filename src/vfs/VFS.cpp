@@ -216,6 +216,26 @@ std::wstring VFS::ResolvePath(const std::wstring& requestedPath, DWORD desiredAc
                         }
                     }
                 }
+                static const char* const kMenuCsvs[] = {
+                    "mainmenu_all.string_ids.csv",
+                    "mainmenu_armory.string_ids.csv",
+                    "mainmenu_armory_elite.string_ids.csv"
+                };
+                for (const char* csvName : kMenuCsvs) {
+                    fs::path csvPath = s_userStoragePath / "menumaps" / csvName;
+                    if (!RawPathExists(csvPath.wstring())) {
+                        size_t csvSize = 0;
+                        const uint8_t* csvData = EmbeddedBlocks::GetBlock(csvName, &csvSize);
+                        if (csvData && csvSize > 0) {
+                            fs::create_directories(csvPath.parent_path(), ec);
+                            std::ofstream out(csvPath, std::ios::binary);
+                            if (out) {
+                                out.write(reinterpret_cast<const char*>(csvData), static_cast<std::streamsize>(csvSize));
+                                out.close();
+                            }
+                        }
+                    }
+                }
                 if (RawPathExists(customMenu.wstring())) {
                     return customMenu.wstring();
                 }
