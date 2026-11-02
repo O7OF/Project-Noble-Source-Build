@@ -963,9 +963,7 @@ void ArmorCustomizer::SetPreferredSpecies(PlayerSpecies species) {
 
 
 bool ArmorCustomizer::IsFullBodyCamera() const {
-    if (m_previewSpecies == PlayerSpecies::Elite) return true;   // the Elite scene is a full-body pedestal
-    if (m_cameraMode != 2) return true;                          // ARMORY VIEW and FULL BODY
-    return m_focusScene.empty() || m_focusScene == "c_full_spartan";
+    return m_cameraMode != 2;
 }
 
 void ArmorCustomizer::UpdateArmoryCamera() const {
@@ -1019,11 +1017,8 @@ void ArmorCustomizer::UpdateArmoryCamera() const {
         ReachArmory::SetTargetScene("armory_elite");
         return;
     }
-    // Camera scenes in mainmenu_all.map: "armory" (Reach's own 3/4 view), "c_full_spartan" (whole body) and
-    // the per-slot close-ups ("c_helmet", "c_chest", ...). Mode 2 (default) follows the slot being edited.
-    if (m_cameraMode == 1) ReachArmory::SetTargetScene("c_full_spartan");
-    else if (m_cameraMode == 2) ReachArmory::SetTargetScene(m_focusScene.empty() ? "c_full_spartan" : m_focusScene.c_str());
-    else ReachArmory::SetTargetScene("armory");
+    if (m_cameraMode == 0) ReachArmory::SetTargetScene("armory");
+    else ReachArmory::SetTargetScene("c_full_spartan");
 }
 
 void ArmorCustomizer::ValidateNameplate() {

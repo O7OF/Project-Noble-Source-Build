@@ -339,12 +339,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     uint32_t renderWidth = std::clamp(std::max(window->GetWidth(), monitorWidth), 320u, kMaxRenderWidth);
     uint32_t renderHeight = std::clamp(std::max(window->GetHeight(), monitorHeight), 240u, kMaxRenderHeight);
     if (showMenu) {
-        const float scale = std::min(1.5f, std::min(static_cast<float>(kMaxRenderWidth) / static_cast<float>(renderWidth),
-                                                     static_cast<float>(kMaxRenderHeight) / static_cast<float>(renderHeight)));
-        if (scale > 1.0f) {
-            renderWidth = static_cast<uint32_t>(std::lround(static_cast<float>(renderWidth) * scale));
-            renderHeight = static_cast<uint32_t>(std::lround(static_cast<float>(renderHeight) * scale));
-        }
         NOBLE_INFO("main: menu render resolution {}x{} (window {}x{}, display {}x{})", renderWidth, renderHeight,
                    window->GetWidth(), window->GetHeight(), monitorWidth, monitorHeight);
     } else {

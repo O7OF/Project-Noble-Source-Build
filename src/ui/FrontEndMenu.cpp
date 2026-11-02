@@ -518,29 +518,33 @@ bool Prepare(ID3D11Device* device, ID3D11DeviceContext* context) {
 }
 
 void Draw(const Ui& ui, ID3D11Device* device, ID3D11DeviceContext* context, float ruleY) {
+    (void)ruleY;
     if (!ReachArmory::IsSceneReady() || !Prepare(device, context)) return;
     const float W = ui.size.x, H = ui.size.y;
     constexpr float kStageX = 0.7425f;  // the middle of the free area right of the picker
-    float k = 1.0f;
-    ImVec2 p0;
-    if (UIManager::GetArmorCustomizer().IsFullBodyCamera()) {
-        // Whole-body cameras frame the pedestal, so the character sits small in the middle of the
-        // engine frame. Enlarge that frame around the character until it fills the stage and the
-        // weapon prop below the feet is off-screen. The menu process renders 1.5x its window, so a
-        // 1.5x draw here is still 1:1 source-to-screen (no pixelation); never go past that.
-        const float windowScale = std::max(1.0f, s_windowScale);
-        k = std::min(1.5f, windowScale);
-        constexpr float kFocusX = 0.590f;   // character centre in the engine frame (0x0C / 0x0B)
-        constexpr float kFocusY = 0.505f;
-        const float targetX = ui.origin.x + W * kStageX;
-        const float targetY = ui.origin.y + H * 0.62f;
-        p0 = ImVec2(targetX - W * kFocusX * k, targetY - H * kFocusY * k);
+
+    const int cameraMode = UIManager::GetArmorCustomizer().GetCameraMode();
+    const bool isElite = ReachArmory::GetSelection().previewElite;
+
+    float k = 1.45f;
+    constexpr float kFocusX = 0.590f;   // character centre in the engine frame (0x0C / 0x0B)
+    float kFocusY = 0.505f;
+    float targetY = ui.origin.y + H * 0.62f;
+
+    if (cameraMode == 2) {
+        // CLOSE-UP: zoom into upper torso, helmet and visor!
+        k = 2.15f;
+        kFocusY = isElite ? 0.380f : 0.365f;
+        targetY = ui.origin.y + H * 0.56f;
     } else {
-        // Per-slot close-ups already fill the frame; keep the old whole-frame placement under the rule.
-        constexpr float kModelX = 0.656f;
-        k = std::clamp((H - ruleY) / H, 0.70f, 0.90f);
-        p0 = ImVec2(ui.origin.x + W * kStageX - W * kModelX * k, ruleY);
+        // FULL BODY (mode 1) and ARMORY VIEW (mode 0)
+        k = 1.45f;
+        kFocusY = 0.505f;
+        targetY = ui.origin.y + H * 0.62f;
     }
+
+    const float targetX = ui.origin.x + W * kStageX;
+    const ImVec2 p0(targetX - W * kFocusX * k, targetY - H * kFocusY * k);
     const ImVec2 p1(p0.x + W * k, p0.y + H * k);
 
     ui.dl->AddRectFilled(ui.origin, ImVec2(ui.origin.x + W, ui.origin.y + H), IM_COL32(0, 0, 0, 255));
@@ -575,6 +579,10 @@ void Draw(const Ui& ui, ID3D11Device* device, ID3D11DeviceContext* context, floa
 } // namespace ArmoryStage
 
 void DrawBackdrop(const Ui& ui, Screen screen) {
+    ImGuiViewport* vp = ImGui::GetMainViewport();
+    if (vp && (ui.origin.x > 0.0f || ui.origin.y > 0.0f || ui.size.x < vp->Size.x || ui.size.y < vp->Size.y)) {
+        ui.dl->AddRectFilled(ImVec2(0, 0), vp->Size, IM_COL32(0, 0, 0, 255));
+    }
     const ImVec2 o = ui.origin;
     const ImVec2 extent(ui.origin.x + ui.size.x, ui.origin.y + ui.size.y);
     // Front-end screens use the selected menu background (the player's own pictures in
@@ -4580,9 +4588,23 @@ void DrawFrontEndContents(OverlayContext& ctx, ID3D11Device* device, ID3D11Devic
     }
     Ui ui;
     ui.dl = ImGui::GetWindowDrawList();
-    ui.origin = ImVec2(0.0f, 0.0f);
-    ui.size = vp->Size;
-    ui.s = std::clamp(vp->Size.y / 900.0f, 0.75f, 4.0f);   // 4K back buffer = 2.4 (was capped at 2.0)
+    constexpr float kAspect = 16.0f / 9.0f;
+    const float currentAspect = (vp->Size.y > 0.0f) ? (vp->Size.x / vp->Size.y) : kAspect;
+    if (std::abs(currentAspect - kAspect) < 0.01f) {
+        ui.origin = ImVec2(0.0f, 0.0f);
+        ui.size = vp->Size;
+    } else if (currentAspect > kAspect) {
+        // Wider than 16:9: pillarbox with black bars left/right
+        const float targetW = vp->Size.y * kAspect;
+        ui.origin = ImVec2((vp->Size.x - targetW) * 0.5f, 0.0f);
+        ui.size = ImVec2(targetW, vp->Size.y);
+    } else {
+        // Taller than 16:9: letterbox with black bars top/bottom
+        const float targetH = vp->Size.x / kAspect;
+        ui.origin = ImVec2(0.0f, (vp->Size.y - targetH) * 0.5f);
+        ui.size = ImVec2(vp->Size.x, targetH);
+    }
+    ui.s = std::clamp(ui.size.y / 900.0f, 0.75f, 4.0f);   // 4K back buffer = 2.4 (was capped at 2.0)
 
     s_lobbyBackdropMap = st.lobbyMap;
     s_lobbyBackdropImage = st.lobbyMapImage.empty() ? st.lobbyMapThumb : st.lobbyMapImage;

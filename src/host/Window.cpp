@@ -78,13 +78,15 @@ void Window::ApplyWindowSettings(uint32_t width, uint32_t height, bool borderles
     const RECT workRect = monitorInfo.rcWork;
 
     if (m_borderless) {
+        if (IsZoomed(m_hwnd)) ShowWindow(m_hwnd, SW_RESTORE);
         SetWindowLongPtrW(m_hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
         const int w = monitorRect.right - monitorRect.left;
         const int h = monitorRect.bottom - monitorRect.top;
         SetWindowPos(m_hwnd, HWND_TOP, monitorRect.left, monitorRect.top, w, h,
                      SWP_FRAMECHANGED | SWP_SHOWWINDOW);
     } else {
-        const DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+        if (IsZoomed(m_hwnd)) ShowWindow(m_hwnd, SW_RESTORE);
+        const DWORD style = WS_OVERLAPPEDWINDOW;
         RECT rect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
         AdjustWindowRect(&rect, style, FALSE);
         int winW = rect.right - rect.left;
@@ -132,7 +134,7 @@ bool Window::Create() {
     // it has started, so a maximized or dragged-larger window can only stretch (and pixelate) that picture.
     // WINDOW MODE = BORDERLESS FULL SCREEN is the full-screen path: it creates the window at the monitor's
     // size. The menu process additionally supersamples 1.5x and the window downscales that cleanly.
-    DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+    DWORD style = WS_OVERLAPPEDWINDOW;
     int windowWidth = 0, windowHeight = 0, posX = 0, posY = 0;
     if (m_borderless) {
         // Borderless: a popup window the size of the primary monitor.
@@ -327,6 +329,29 @@ LRESULT Window::HandleMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             m_shouldClose = true;
             PostQuitMessage(0);
             return 0;
+        case WM_SIZING: {
+            RECT* r = reinterpret_cast<RECT*>(lParam);
+            const DWORD curStyle = static_cast<DWORD>(GetWindowLongPtrW(hwnd, GWL_STYLE));
+            RECT borderRect = { 0, 0, 1600, 900 };
+            AdjustWindowRect(&borderRect, curStyle, FALSE);
+            const int borderW = (borderRect.right - borderRect.left) - 1600;
+            const int borderH = (borderRect.bottom - borderRect.top) - 900;
+
+            int curClientW = (r->right - r->left) - borderW;
+            int curClientH = (r->bottom - r->top) - borderH;
+            if (curClientW < 640) curClientW = 640;
+            if (curClientH < 360) curClientH = 360;
+
+            constexpr double kAspect = 16.0 / 9.0;
+            if (wParam == WMSZ_LEFT || wParam == WMSZ_RIGHT) {
+                curClientH = static_cast<int>(std::round(curClientW / kAspect));
+            } else {
+                curClientW = static_cast<int>(std::round(curClientH * kAspect));
+            }
+            r->right = r->left + curClientW + borderW;
+            r->bottom = r->top + curClientH + borderH;
+            return TRUE;
+        }
         case WM_SIZE:
             m_width = LOWORD(lParam);
             m_height = HIWORD(lParam);

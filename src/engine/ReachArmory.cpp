@@ -381,7 +381,7 @@ static std::atomic<uint64_t> s_globalsMarkerHits{0};
 static bool IsNewMenuLayout() {
     EnsureStringIdsLoaded();
     ArmoryLock lock(s_dataMutex);
-    return s_stringIds.size() < 32100;   // old map 32,213 names; RR new map 31,978
+    return LookupStringId("flair_head_a") != 0 || s_stringIds.size() < 32100;
 }
 
 static int GlobalsSlotFor(uintptr_t base, size_t stride, uint32_t id) {
@@ -1020,11 +1020,11 @@ static void WriteColorsAndSuit(const ReachArmorySelection& sel) {
             std::remove_if(s_colorRecords.begin(), s_colorRecords.end(), [&](uintptr_t rec) {
                 uint32_t cur[4] = {};
                 if (!SafeCopyMem(cur, reinterpret_cast<const void*>(rec), sizeof(cur))) return true;
-                if ((cur[0] >> 24) != 0xFFu || (cur[1] >> 24) != 0xFFu ||
-                    (cur[2] >> 24) != 0xFFu || (cur[3] >> 24) != 0xFFu) {
-                    return true;
+                if ((cur[0] >> 24) == 0xFFu && (cur[1] >> 24) == 0xFFu &&
+                    (cur[2] >> 24) == 0xFFu && (cur[3] >> 24) == 0xFFu) {
+                    SafeCopyMem(reinterpret_cast<void*>(rec), words.data(), sizeof(uint32_t) * 4);
                 }
-                return !SafeCopyMem(reinterpret_cast<void*>(rec), words.data(), sizeof(uint32_t) * 4);
+                return false;
             }),
             s_colorRecords.end()
         );
@@ -1033,11 +1033,11 @@ static void WriteColorsAndSuit(const ReachArmorySelection& sel) {
             std::remove_if(s_eliteColorRecords.begin(), s_eliteColorRecords.end(), [&](uintptr_t rec) {
                 uint32_t cur[4] = {};
                 if (!SafeCopyMem(cur, reinterpret_cast<const void*>(rec), sizeof(cur))) return true;
-                if ((cur[0] >> 24) != 0xFFu || (cur[1] >> 24) != 0xFFu ||
-                    (cur[2] >> 24) != 0xFFu || (cur[3] >> 24) != 0xFFu) {
-                    return true;
+                if ((cur[0] >> 24) == 0xFFu && (cur[1] >> 24) == 0xFFu &&
+                    (cur[2] >> 24) == 0xFFu && (cur[3] >> 24) == 0xFFu) {
+                    SafeCopyMem(reinterpret_cast<void*>(rec), words.data(), sizeof(uint32_t) * 4);
                 }
-                return !SafeCopyMem(reinterpret_cast<void*>(rec), words.data(), sizeof(uint32_t) * 4);
+                return false;
             }),
             s_eliteColorRecords.end()
         );
