@@ -1481,8 +1481,10 @@ static void ApplyGlobalsAndPermutations(int32_t targetSceneIdx, const std::strin
             pushPair("chest",          sel.chest,         "chest_blank");
             pushPair("left_shoulder",  sel.leftShoulder,  "left_shoulder_blank");
             pushPair("right_shoulder", sel.rightShoulder, "right_shoulder_blank");
+            pushPair("hands",          sel.hands,         "default");
             pushPair("wrist",          sel.wrist,         "wrist_blank");
             pushPair("utility",        sel.utility,       "utility_blank");
+            pushPair("knees",          sel.knees,         "knees_default");
             pushPair("armor_effect",   sel.armorEffect,   "default");
         }
 
@@ -1513,6 +1515,22 @@ static void ApplyGlobalsAndPermutations(int32_t targetSceneIdx, const std::strin
                     SafeWriteU32(base + (slot + 1) * stride, pair.second);
                 }
             } else {
+                // Legacy 297 MB menu map: the GLOBALS slots are fixed (head 0x04, chest 0x06, ...), so the
+                // historical fixed pair order is required. The pmcg-derived pairs are ordered by region name and
+                // would land in the wrong slots here (Dominus's 2026-11-02 update left hands/knees out and wrote
+                // the rest in region order, which is why only some armors changed).
+                if (!showElite) {
+                    pairs.clear();
+                    pushPair("head",           sel.helmet,        "default");
+                    pushPair("chest",          sel.chest,         "chest_blank");
+                    pushPair("left_shoulder",  sel.leftShoulder,  "left_shoulder_blank");
+                    pushPair("right_shoulder", sel.rightShoulder, "right_shoulder_blank");
+                    pushPair("hands",          sel.hands,         "default");
+                    pushPair("wrist",          sel.wrist,         "wrist_blank");
+                    pushPair("utility",        sel.utility,       "utility_blank");
+                    pushPair("knees",          sel.knees,         "knees_default");
+                    pushPair("armor_effect",   sel.armorEffect,   "default");
+                }
                 while (pairs.size() < 16) pairs.push_back(pairs[0]);
                 writtenPairs = pairs;
                 for (size_t i = 0; i < 16; ++i) {
