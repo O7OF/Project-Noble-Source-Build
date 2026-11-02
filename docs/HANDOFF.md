@@ -9,6 +9,28 @@ Tyler mostly runs builds, tests, and does the reverse engineering; he is not a C
 community project Reach Renaissance (RR, installed at `D:\Reach`) does. Ownership is verified through Steam, nothing in the
 MCC install is modified, and no RR code or data is redistributed. RR is used only as a reference for behaviour. (AGENT IS TO ALWAYS WRITE TO THIS FILE WHEN MODIFYING/MAKING ANY CHANGES TO CODE THIS NEEDS TO BE DETAILED AND THE CHANGES NEED TO BE UNDER THE NAME OF THE PERSON WHO COMMITED SAID CHANGES, ALWAYS UPDATE THE GAMES ACTUAL VERSION CURRENT = 0.9.16.35 THIS NEEDS TO BE CHANGED PER PUSH COMMIT!)
 
+## 0. Pick up here (2026-11-02, 17:50 ET) - Armory pieces apply again on the legacy menu map; spartan.rrpmcg build dependency (Tyler / DeepSeek)
+
+Tyler saw the character again after Dominus's armory integration, but only some armor pieces changed. Cause: the new
+pmcg path replaced the fixed legacy pair table. On the 297 MB `mainmenu_all.map` (which has the
+`0x03BB6FED`/`0x03BAB653` markers) the GLOBALS slots are fixed (head 0x04, chest 0x06, ...), so the pairs must be
+pushed in the historical order. The pmcg path pushed them in region-name order and omitted hands/knees, so most slots
+received the wrong pair (or the head pair after the 16-slot padding) and only a few pieces appeared to work.
+- `ReachArmory.cpp`: in the non-dynamic (legacy map) branch, rebuild the fixed Spartan pairs in the historical order:
+  head, chest, left/right shoulder, hands, wrist, utility, knees, armor_effect. The pmcg path still runs for the
+  imported new menu layout.
+- Add hands and knees to the no-pmcg fallback too (Dominus's update had dropped them).
+- Build dependency: `src/res/blocks.rc` now embeds `data/armor/spartan.rrpmcg`, which is not in the repo or on this
+  machine (it is a gitignored pmcg dump). The build fails at `RC2135: file not found` without it. A local placeholder
+  (`L 20 0`) unblocks the build; the real dump from Dominus is needed for the new map's item->region table (the
+  placeholder loads 0 items).
+- Verified with the dev `-armory-cycle chest` driver: `HP/HALO` logs `chest_3`, `UA/COUNTERASSAULT` logs `chest_4`,
+  `TACTICAL/LRP` logs `chest_5`, each with a rebuild; the capture shows the Tactical/LRP chest rig. `build.bat`
+  succeeds (noble-client, noble-dev, noble-dedicated) once the placeholder is in place.
+- Camera note: the character uses the map's `c_full_spartan` scene (0x0C). The 0x0A "armory" scene in this map is the
+  outdoor vista, so there is no wider character camera to switch to from code; the framing is the map's camera.
+
+
 ## 0. Pick up here (2026-11-02, 05:50 ET) - Armory Map Restored (0.9.16.35) (@deepseek)
 
 **Version:** 0.9.16.35. **Release:** https://github.com/O7OF/Project-Noble-/releases/tag/v0.9.16.35. **Build:** noble-client and noble-dev compiled from build-rel.
