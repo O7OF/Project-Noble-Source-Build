@@ -1760,7 +1760,10 @@ static void ApplyGlobalsAndPermutations(int32_t targetSceneIdx, const std::strin
                 // historical fixed pair order is required. The pmcg-derived pairs are ordered by region name and
                 // would land in the wrong slots here (Dominus's 2026-11-02 update left hands/knees out and wrote
                 // the rest in region order, which is why only some armors changed).
-                if (!showElite) {
+                // Only fall back to the fixed name-only pairs when no pmcg table was loaded. With the
+                // real spartan.rrpmcg the pmcg pairs are the item -> region mapping and must be kept.
+                const bool usedPmcg = PmcgItem("20", "default") != nullptr;
+                if (!showElite && !usedPmcg) {
                     pairs.clear();
                     pushPair("head",           sel.helmet,        "default");
                     pushPair("chest",          sel.chest,         "chest_blank");

@@ -2691,10 +2691,12 @@ void ArmorCustomizer::Render(ID3D11Device* device, ID3D11DeviceContext* context)
                 if (field == &m_profile.visorColorIndex) m_visorSelection = wantValue;
                 if (field == &m_profile.helmetIndex) m_profile.helmetVariantIndex = 0;   // a helmet is tried on with its base
                 if (field == &m_profile.eliteArmorSet) ApplyEliteSetPieces(m_profile, wantValue);   // try the whole preset
+                s_lastApplyTick = 0;   // a try-on (including a locked visor) applies now, not after the 250 ms coalescer
                 SyncToReachArmory();
                 m_visorSelection = savedVisorSelection;
                 m_profile = saved;
             } else {
+                s_lastApplyTick = 0;   // restore the equipped look immediately
                 SyncToReachArmory();   // back to the equipped look
             }
         }

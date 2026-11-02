@@ -1,0 +1,516 @@
+L 20 90
+S default
+C head default 0
+S default_a
+C head default 0
+C flair_head_c player_sam 0
+C flair_head_b default 0
+S default_b
+C head default 0
+C flair_head_a emile 0
+C flair_head_c player_sam 0
+C flair_head_b default 0
+S rosenda
+C head player_rosenda 0
+S rosenda_a
+C head player_rosenda 0
+C flair_head_c player_skull 0
+S rosenda_b
+C head player_rosenda 0
+C flair_head_c player_rosenda 0
+C flair_head_a emile 0
+S adrianna
+C head player_adrianna 0
+S adrianna_a
+C head player_adrianna 0
+C flair_head_c player_skull 0
+C flair_head_b player_adrianna 0
+S adrianna_b
+C head player_adrianna 0
+C flair_head_b player_anton 0
+C flair_head_a player_adrianna 0
+S malcolm
+C head player_malcolm 0
+S malcolm_a
+C head player_malcolm 0
+C flair_head_b player_anton 0
+C flair_head_c player_jai 0
+S malcolm_b
+C head player_malcolm 0
+C flair_head_a emile 0
+C flair_head_c player_skull 0
+S skull
+C head player_skull 0
+S skull_a
+C head player_skull 0
+C flair_head_c player_skull 0
+C flair_head_a emile 0
+S skull_b
+C head player_skull 0
+C flair_head_c player_isaac 0
+C flair_head_b player_anton 0
+S vinh
+C head player_vinh 0
+C flair_head_c player_vinh 0
+S vinh_a
+C head player_vinh 0
+C flair_head_c player_vinh 0
+C flair_head_b player_anton 0
+S vinh_b
+C head player_vinh 0
+C flair_head_c player_joshua 0
+C flair_head_a emile 0
+S isaac
+C head player_isaac 0
+C flair_head_c player_isaac 0
+S isaac_a
+C head player_isaac 0
+C flair_head_c player_jai 0
+C flair_head_b emile 0
+S isaac_b
+C head player_isaac 0
+C flair_head_c player_isaac 0
+C flair_head_a kat 0
+S joshua
+C head player_joshua 0
+S joshua_a
+C head player_joshua 0
+C flair_head_c player_joshua 0
+S joshua_b
+C head player_joshua 0
+C flair_head_c player_joshua 0
+C flair_head_a emile 0
+C flair_head_b player_anton 0
+S female
+C head female 0
+S female_a
+C head female 0
+C flair_head_c player_rosenda 0
+C flair_head_a player_anton 0
+S female_b
+C head female 0
+C flair_head_a kat 0
+C flair_head_c player_rosenda 0
+S jun
+C head jun 0
+S jun_a
+C head jun 0
+C flair_head_c jun 0
+S jun_b
+C head jun 0
+C flair_head_a kat 0
+C flair_head_c player_skull 0
+S player_li
+C head player_li 0
+S player_li_a
+C head player_li 0
+C flair_head_b player_anton 0
+S player_li_b
+C head player_li 0
+C flair_head_c player_rosenda 0
+C flair_head_a carter 0
+S nicole
+C head player_nicole 0
+S nicole_a
+C head player_nicole 0
+C flair_head_c player_nicole 0
+S nicole_b
+C head player_nicole 0
+C flair_head_c player_jai 0
+S carter
+C head carter 0
+C flair_head_a carter 0
+S carter_a
+C head carter 0
+C flair_head_c player_skull 0
+C flair_head_b player_anton 0
+S carter_b
+C head carter 0
+C flair_head_b player_anton 0
+C flair_head_c carter 0
+C flair_head_a carter 0
+S john117
+C head player_john117 0
+S john117_a
+C head player_john117 0
+C flair_head_b player_anton 0
+S john117_b
+C head player_john117 0
+C flair_head_c player_joshua 0
+S sam
+C head player_sam 0
+S sam_a
+C head player_sam 0
+C flair_head_a carter 0
+S sam_b
+C head player_sam 0
+C flair_head_c player_sam 0
+C flair_head_a carter 0
+S sam_c
+C head bungie 0
+C flair_head_a carter 0
+C flair_head_c player_sam 0
+S linda
+C head player_linda 0
+S linda_a
+C head player_linda 0
+C flair_head_c player_sam 0
+C flair_head_a emile 0
+S linda_b
+C head player_linda 0
+C flair_head_c player_vinh 0
+C flair_head_b player_anton 0
+S will
+C head player_will 0
+S will_a
+C head player_will 0
+C flair_head_b player_anton 0
+C flair_head_a carter 0
+S will_b
+C head player_will 0
+C flair_head_a kat 0
+C flair_head_c player_joshua 0
+S kurt
+C head player_kurt 0
+S kurt_a
+C head player_kurt 0
+C flair_head_a kat 0
+C flair_head_b player_adrianna 0
+S kurt_b
+C head player_kurt 0
+C flair_head_c player_rosenda 0
+C flair_head_b emile 0
+S kelly
+C head player_kelly 0
+S kelly_a
+C head player_kelly 0
+C flair_head_b player_adrianna 0
+S kelly_b
+C head player_kelly 0
+C flair_head_c player_vinh 0
+C flair_head_a player_adrianna 0
+S jai
+C head player_jai 0
+S jai_a
+C head player_jai 0
+C flair_head_a emile 0
+S jai_b
+C head player_jai 0
+C flair_head_a carter 0
+C flair_head_c player_jai 0
+S emile
+C head emile 0
+S emile_a
+C head emile 0
+C flair_head_a emile 0
+S emile_b
+C head emile 0
+C flair_head_c player_rosenda 0
+C flair_head_a emile 0
+S cndmnd
+C head dlc2_helmet_cndmnd 0
+S cndmnd_a
+C head dlc2_helmet_cndmnd_dfnt 0
+S cndmnd_b
+C head dlc2_helmet_cndmnd_mstr 0
+S cndmnd_c
+C head dlc2_helmet_cndmnd 0
+C flair_head_b dlc2_helmet_cndmnd 0
+S hilands
+C head dlc2_helmet_hilands 0
+S hilands_a
+C head dlc2_helmet_hilands 0
+C flair_head_a dlc2_helmet_hilands 0
+S hilands_b
+C head dlc2_helmet_hilands 0
+C flair_head_b dlc2_helmet_hilands 0
+S hilands_c
+C head dlc2_helmet_hilands 0
+C flair_head_a dlc2_helmet_hilands 0
+C flair_head_b dlc2_helmet_hilands 0
+S s8_helmet_belos_corinthian
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_belos_corinthian 0
+S s8_helmet_belos_transverse
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_belos_transverse 0
+S s8_helmet_belos_kerata
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_belos_kerata 0
+S s8_helmet_belos_leontokardos
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_belos_leontokardos 0
+S s8_helmet_belos_stheno
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_belos_stheno 0
+S s8_helmet_belos_cerberus
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_belos_cerberus 0
+S s8_helmet_blackguard_base
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_blackguard_base 0
+S s8_helmet_blackguard_bishop
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_blackguard_bishop 0
+S s8_helmet_blackguard_dragon
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_blackguard_dragon 0
+S s8_helmet_blackguard_wind
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_blackguard_wind 0
+S s8_helmet_blackguard_visage
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_blackguard_visage 0
+S s8_helmet_blackguard_crown
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_blackguard_crown 0
+S s8_helmet_drengr_base
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_drengr_base 0
+S s8_helmet_drengr_valdemar
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_drengr_valdemar 0
+S s8_helmet_drengr_dvalinn
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_drengr_dvalinn 0
+S s8_helmet_drengr_nari
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_drengr_nari 0
+S s8_helmet_drengr_thyra
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_drengr_thyra 0
+S s8_helmet_drengr_tyr
+C head s8_helmet_dummy 0
+C flair_head_a s8_helmet_drengr_tyr 0
+L 2c 18
+S left_shoulder_blank
+S left_shoulder_1
+C flair_left_shoulder kat 0
+S left_shoulder_2
+C flair_left_shoulder player_nicole 0
+S left_shoulder_3
+C flair_left_shoulder player_fred 0
+S left_shoulder_4
+C flair_left_shoulder player_sam 0
+S left_shoulder_5
+C flair_left_shoulder player_anton 0
+S left_shoulder_6
+C flair_left_shoulder player_malcolm 0
+S left_shoulder_7
+C flair_left_shoulder player_jai 0
+S left_shoulder_8
+C flair_left_shoulder player_adrianna 0
+S left_shoulder_9
+C flair_left_shoulder player_kelly 0
+S left_shoulder_10
+C flair_left_shoulder player_skull 0
+S left_shoulder_11
+C flair_left_shoulder player_isaac 0
+S left_shoulder_12
+C flair_left_shoulder carter 0
+S left_shoulder_13
+C flair_left_shoulder player_joshua 0
+S left_shoulder_14
+C flair_left_shoulder player_li 0
+S left_shoulder_15
+C flair_left_shoulder player_john117 0
+S left_shoulder_16
+C flair_left_shoulder player_will 0
+S left_shoulder_kurt
+C flair_left_shoulder player_kurt 0
+L 38 18
+S right_shoulder_blank
+S right_shoulder_1
+C flair_right_shoulder player_rosenda 0
+S right_shoulder_2
+C flair_right_shoulder player_nicole 0
+S right_shoulder_3
+C flair_right_shoulder player_fred 0
+S right_shoulder_4
+C flair_right_shoulder player_sam 0
+S right_shoulder_5
+C flair_right_shoulder player_anton 0
+S right_shoulder_6
+C flair_right_shoulder player_malcolm 0
+S right_shoulder_7
+C flair_right_shoulder player_jai 0
+S right_shoulder_8
+C flair_right_shoulder player_adrianna 0
+S right_shoulder_9
+C flair_right_shoulder player_kelly 0
+S right_shoulder_10
+C flair_right_shoulder player_skull 0
+S right_shoulder_11
+C flair_right_shoulder player_isaac 0
+S right_shoulder_12
+C flair_right_shoulder carter 0
+S right_shoulder_13
+C flair_right_shoulder player_joshua 0
+S right_shoulder_14
+C flair_right_shoulder player_li 0
+S right_shoulder_15
+C flair_right_shoulder player_john117 0
+S right_shoulder_16
+C flair_right_shoulder player_will 0
+S right_shoulder_kurt
+C flair_right_shoulder player_kurt 0
+L 44 26
+S chest_blank
+S chest_1
+C flair_chest_a player_fred 0
+S chest_2
+C flair_chest_a player_anton 0
+S chest_3
+C flair_chest_a player_nicole 0
+C flair_chest_b emile 0
+S chest_4
+C flair_chest_a player_malcolm 0
+S chest_5
+C flair_chest_a player_isaac 0
+S chest_6
+C flair_chest_a player_adrianna 0
+C flair_chest_b player_adrianna 0
+S chest_7
+C flair_chest_a player_joshua 0
+S chest_8
+C flair_chest_a jun 0
+C flair_chest_b jun 0
+S chest_9
+C flair_chest_a player_jai 0
+S chest_10
+C flair_chest_a emile 0
+C flair_chest_b emile 0
+S chest_11
+C flair_chest_a carter 0
+C flair_chest_b carter 0
+S chest_12
+C flair_chest_a player_kelly 0
+C flair_chest_b kat 0
+S chest_13
+C flair_chest_a player_joshua 0
+C flair_chest_b player_joshua 0
+S chest_wp_1
+C flair_chest_a player_anton 0
+C flair_chest_b emile 0
+S chest_wp_2
+C flair_chest_a player_fred 0
+C flair_chest_b emile 0
+S chest_robo_1
+C flair_chest_a player_jai 0
+C arms player_john117 1
+C arms kat 2
+S chest_robo_2
+C flair_chest_a player_kelly 0
+C arms player_john117 1
+C arms kat 2
+S chest_robo_3
+C flair_chest_a emile 0
+C arms player_john117 1
+C arms kat 2
+S chest_kurt
+C flair_chest_a player_kurt 0
+S chest_default_roboarm
+C arms player_john117 1
+C arms kat 2
+S chest_tacticalpatrol_roboarm
+C flair_chest_a jun 0
+C flair_chest_b jun 0
+C arms player_john117 1
+C arms kat 2
+S chest_tacticalrecon_roboarm
+C flair_chest_a player_adrianna 0
+C flair_chest_b player_adrianna 0
+C arms player_john117 1
+C arms kat 2
+S chest_collargrenadierua_roboarm
+C flair_chest_a player_joshua 0
+C flair_chest_b player_joshua 0
+C arms player_john117 1
+C arms kat 2
+S chest_uacounterassault_roboarm
+C flair_chest_a player_malcolm 0
+C arms player_john117 1
+C arms kat 2
+S chest_cndmnd
+C flair_chest_a dlc2_chest_cndmnd 0
+L 50 6
+S wrist_blank
+S wrist_1
+C flair_forearm player_kelly 0
+S wrist_2
+C flair_forearm player_joshua 0
+S wrist_3
+C flair_forearm carter 0
+S wrist_4
+C flair_forearm player_isaac 0
+S wrist_5
+C flair_forearm jun 0
+L 5c 7
+S utility_blank
+S utility_1
+C flair_thigh emile 0
+S utility_2
+C flair_thigh player_joshua 0
+S utility_3
+C flair_thigh player_adrianna 0
+S utility_4
+C flair_thigh player_skull 0
+S utility_5
+C flair_thigh kat 0
+S utility_6
+C flair_thigh flask 0
+L 68 4
+S knees_default
+C flair_knees kat 0
+S knees_1
+C flair_knees default 0
+S knees_2
+C flair_knees player_adrianna 0
+S knees_3
+C flair_knees player_joshua 0
+L 74 8
+S default
+C armor_pieces default 0
+S spec_ops
+C armor_pieces spec_ops 4
+S space
+C armor_pieces space 4
+S ultra
+C armor_pieces ultra 4
+S zealot
+C armor_pieces zealot 0
+S general
+C armor_pieces general 0
+S zealot_commander
+C armor_pieces story_elite 0
+S officer
+C armor_pieces officer 0
+L 80 7
+S default_armor
+S legendary_flame
+C armor_fx armor_fx_00 0
+S eternal_flame
+C armor_fx armor_fx_01 0
+S heart_attack
+C armor_fx armor_fx_02 0
+S pestilence
+C armor_fx armor_fx_03 0
+S storm
+C armor_fx armor_fx_04 0
+S halo_bday
+C armor_fx armor_fx_05 0
+L 8c 7
+S default_armor
+S legendary_flame
+C armor_fx armor_fx_00 0
+S eternal_flame
+C armor_fx armor_fx_01 0
+S heart_attack
+C armor_fx armor_fx_02 0
+S pestilence
+C armor_fx armor_fx_03 0
+S storm
+C armor_fx armor_fx_04 0
+S halo_bday
+C armor_fx armor_fx_05 0
+L 98 0
