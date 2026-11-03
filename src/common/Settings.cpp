@@ -139,6 +139,7 @@ void Settings::Load() {
             Read(j, "invertLook", d.invertLook);
             Read(j, "wheelUpAction", d.wheelUpAction);
             Read(j, "wheelDownAction", d.wheelDownAction);
+            Read(j, "toggleCrouch", d.toggleCrouch);
             Read(j, "padVibration", d.padVibration);
             Read(j, "padVibrationStrength", d.padVibrationStrength);
             // Older files saved 1..19; 19 stays the top of the new 1.00..10.00 scale.
@@ -163,6 +164,7 @@ void Settings::Load() {
             Read(j, "padLayout", d.padLayout);
             Read(j, "padStickLayout", d.padStickLayout);
             Read(j, "padToggleZoom", d.padToggleZoom);
+            Read(j, "padToggleCrouch", d.padToggleCrouch);
             if (j.contains("padPaddleKeys") && j["padPaddleKeys"].is_array() && j["padPaddleKeys"].size() == d.padPaddleKeys.size()) {
                 for (size_t i = 0; i < d.padPaddleKeys.size(); ++i) {
                     if (j["padPaddleKeys"][i].is_number_integer()) d.padPaddleKeys[i] = j["padPaddleKeys"][i].get<int>();
@@ -304,6 +306,7 @@ bool Settings::Save() {
         j["invertLook"] = d.invertLook;
         j["wheelUpAction"] = d.wheelUpAction;
         j["wheelDownAction"] = d.wheelDownAction;
+        j["toggleCrouch"] = d.toggleCrouch;
         j["padVibration"] = d.padVibration;
         j["padVibrationStrength"] = d.padVibrationStrength;
         j["padLookRateX"] = d.padLookSpeedX;
@@ -312,6 +315,7 @@ bool Settings::Save() {
         j["padLayout"] = d.padLayout;
         j["padStickLayout"] = d.padStickLayout;
         j["padToggleZoom"] = d.padToggleZoom;
+        j["padToggleCrouch"] = d.padToggleCrouch;
         j["padPaddleKeys"] = d.padPaddleKeys;
         if (!d.padBindings.empty()) j["padBindings"] = d.padBindings;
         j["padLeftDeadZone"] = d.padLeftDeadZone;

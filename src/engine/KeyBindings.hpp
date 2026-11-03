@@ -22,7 +22,9 @@ constexpr int kActionChatOpen = 72;   // reopens the last channel; unbound by de
 constexpr int kActionVoiceParty = 73;
 constexpr int kActionVoiceTeam = 74;
 constexpr int kActionVoiceGlobal = 75;
-constexpr int kActionCount = 76;
+constexpr int kActionThirdPerson = 76;
+constexpr int kActionToggleCrouch = 77;
+constexpr int kActionCount = 78;
 
 int DefaultKey(int action);            // VK code, 0 = unbound
 int EffectiveKey(int action);          // default or the player's override

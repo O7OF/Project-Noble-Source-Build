@@ -646,19 +646,23 @@ static uint64_t __fastcall HostSlot33_DisplayQuality(void* thisPtr, uint64_t a1,
 // actions 0..65. The keys below are MCC's default PC layout (actions 62..65 are unbound).
 static constexpr size_t kBindingTableOffset = 0x42C;
 static constexpr size_t kBindingEntrySize = 0x18;
-static void ApplyBindingsToEngineSEH(uintptr_t base, const uint8_t* profile) {
-    using ApplyBindingsFn = void(__fastcall*)(int32_t userIndex, const uint8_t* prof);
+static bool ApplyBindingsToEngineSEH(uintptr_t base, const uint8_t* profile) {
+    (void)profile;
+    using ApplyBindingsFn = void(__fastcall*)(uint8_t* ps);
+    bool appliedAny = false;
     __try {
-        reinterpret_cast<ApplyBindingsFn>(base + 0x2C8DFC)(0, profile);
         uint8_t* pool = reinterpret_cast<uint8_t*>(base + 0xEC6EA0);
         for (int slot = 0; slot < 4; ++slot) {
             uint8_t* ps = pool + slot * 0x1018;
             if (*reinterpret_cast<const uint32_t*>(ps + 0x04) == 2) {
+                reinterpret_cast<ApplyBindingsFn>(base + 0x2C8DFC)(ps);
                 *reinterpret_cast<uint32_t*>(ps + 0x0C) = 0;
                 *reinterpret_cast<uint32_t*>(ps + 0x00) |= 0xC00u;
+                appliedAny = true;
             }
         }
     } __except (EXCEPTION_EXECUTE_HANDLER) {}
+    return appliedAny;
 }
 
 static void WriteEngineEmblemAndDirtySEH(uintptr_t base, const uint8_t emblem[8]) {
@@ -686,8 +690,13 @@ static void WriteDefaultKeyBindings(uint8_t* profile) {
                                                                                   : KeyBindings::DefaultKey(static_cast<int>(action)));
         const uint32_t none = 0;
         memset(entry, 0, kBindingEntrySize);
+        uint32_t effectiveVk = vk;
+        if (action == 9 && effectiveVk == 0) {
+            const int toggleVk = KeyBindings::EffectiveKey(KeyBindings::kActionToggleCrouch);
+            if (toggleVk > 0 && toggleVk < 256) effectiveVk = static_cast<uint32_t>(toggleVk);
+        }
         memcpy(entry + 0, &action, sizeof(action));
-        memcpy(entry + 4, &vk, sizeof(vk));
+        memcpy(entry + 4, &effectiveVk, sizeof(effectiveVk));
         memcpy(entry + 8, &none, sizeof(none));
     }
     // Entries are {u32 action, u32 key, u32 second key, 12 zero bytes}. The mouse wheel is bound
@@ -705,14 +714,17 @@ static void WriteDefaultKeyBindings(uint8_t* profile) {
         const uint32_t code = down == up ? 0xAF : 0xAE;
         memcpy(profile + kBindingTableOffset + down * kBindingEntrySize + 8, &code, sizeof(code));
     }
+    profile[0x22] = 0;
+    profile[0x24] = 0;
     static uint8_t s_lastAppliedTable[66 * kBindingEntrySize] = {};
     static bool s_hasAppliedTable = false;
     if (!s_hasAppliedTable || std::memcmp(s_lastAppliedTable, profile + kBindingTableOffset, sizeof(s_lastAppliedTable)) != 0) {
-        std::memcpy(s_lastAppliedTable, profile + kBindingTableOffset, sizeof(s_lastAppliedTable));
-        s_hasAppliedTable = true;
         if (HMODULE hReach = GetModuleHandleW(L"haloreach.dll")) {
-            ApplyBindingsToEngineSEH(reinterpret_cast<uintptr_t>(hReach), profile);
-            NOBLE_INFO("ReachHost [Slot 34]: Live-applied updated keyboard & mouse bindings to haloreach.dll");
+            if (ApplyBindingsToEngineSEH(reinterpret_cast<uintptr_t>(hReach), profile)) {
+                std::memcpy(s_lastAppliedTable, profile + kBindingTableOffset, sizeof(s_lastAppliedTable));
+                s_hasAppliedTable = true;
+                NOBLE_INFO("ReachHost [Slot 34]: Live-applied updated keyboard & mouse bindings to haloreach.dll");
+            }
         }
     }
     if (false) {
@@ -1591,6 +1603,20 @@ static void FillLocalPad(uint8_t* st, bool keyboardMouseUsed) {
         }
         s_zoomWas = zoomNow;
     }
+    // Toggle crouch on controller (SETTINGS > CONTROLS > CONTROLLER > TOGGLE CROUCH):
+    // press crouch button (0x0040) once to stay crouched, press again to stand up.
+    {
+        static bool s_padCrouchWas = false;
+        static bool s_padCrouchLatched = false;
+        const bool crouchNow = (buttons & 0x0040) != 0;
+        if (s_pad.padToggleCrouch) {
+            if (crouchNow && !s_padCrouchWas) s_padCrouchLatched = !s_padCrouchLatched;
+            buttons = static_cast<WORD>(s_padCrouchLatched ? (buttons | 0x0040) : (buttons & ~0x0040));
+        } else {
+            s_padCrouchLatched = false;
+        }
+        s_padCrouchWas = crouchNow;
+    }
     // The maths lives in engine/InputTuning.cpp so the self-test can prove these settings change the output.
     SHORT lx = g.sThumbLX, ly = g.sThumbLY, rx = g.sThumbRX, ry = g.sThumbRY;
     InputTuning::ApplyStickLayout(s_pad.padStickLayout, lx, ly, rx, ry);
@@ -1801,7 +1827,18 @@ static void FillLocalInput(uint8_t* st) {
         static ULONGLONG s_paddleRead = 0;
         if (GetTickCount64() - s_paddleRead > 500) {
             s_paddleRead = GetTickCount64();
-            s_paddleKeys = Settings::Get().Snapshot().padPaddleKeys;
+            const SettingsData snap = Settings::Get().Snapshot();
+            s_paddleKeys = snap.padPaddleKeys;
+            const int thirdPersonVk = KeyBindings::EffectiveKey(KeyBindings::kActionThirdPerson);
+            for (int n = 0; n < PadLayouts::kPaddleCount; ++n) {
+                if (s_paddleKeys[static_cast<size_t>(n)] == thirdPersonVk) {
+                    bool paddleBound = false;
+                    for (const auto& [k, v] : snap.padBindings) {
+                        if (v == PadLayouts::InputPaddle1 + n) { paddleBound = true; break; }
+                    }
+                    if (!paddleBound) s_paddleKeys[static_cast<size_t>(n)] = 0;
+                }
+            }
         }
         s_paddlesHeld = 0;
         for (int n = 0; s_padConnected && n < PadLayouts::kPaddleCount; ++n) {
@@ -1838,6 +1875,55 @@ static void FillLocalInput(uint8_t* st) {
             EnginePatches::RequestLowerWeaponToggle();
         }
         s_lowerWasDown = lowerDown;
+    }
+
+    // Crouch / Toggle Crouch handling (SETTINGS > CONTROLS > KEYBOARD & MOUSE > MOVEMENT):
+    // Supports both the TOGGLE CROUCH setting for the primary Crouch key (slot 9) and the
+    // dedicated CROUCH (TOGGLE) keybind (kActionToggleCrouch).
+    {
+        static SettingsData s_crouchSettings;
+        static ULONGLONG s_crouchSettingsRead = 0;
+        if (now - s_crouchSettingsRead > 250) {
+            s_crouchSettingsRead = now;
+            s_crouchSettings = Settings::Get().Snapshot();
+        }
+        const int crouchVk = KeyBindings::EffectiveKey(9);
+        const int toggleVk = KeyBindings::EffectiveKey(KeyBindings::kActionToggleCrouch);
+        const int engineCrouchVk = (crouchVk > 0 && crouchVk < 256) ? crouchVk
+                                 : ((toggleVk > 0 && toggleVk < 256) ? toggleVk : 0);
+        const bool crouchDown = !uiPointer && crouchVk > 0 && crouchVk < 256 && st[0x004 + crouchVk] != 0;
+        const bool toggleDown = !uiPointer && toggleVk > 0 && toggleVk < 256 && st[0x004 + toggleVk] != 0;
+        static bool s_crouchWasDown = false;
+        static bool s_toggleWasDown = false;
+        static bool s_crouchLatched = false;
+        static bool s_prevToggleSetting = false;
+        if (s_prevToggleSetting && !s_crouchSettings.toggleCrouch) {
+            s_crouchLatched = false;
+        }
+        s_prevToggleSetting = s_crouchSettings.toggleCrouch;
+
+        if (toggleDown && !s_toggleWasDown) {
+            s_crouchLatched = !s_crouchLatched;
+        }
+        if (crouchDown && !s_crouchWasDown && toggleVk != crouchVk) {
+            if (s_crouchSettings.toggleCrouch) {
+                s_crouchLatched = !s_crouchLatched;
+            } else if (s_crouchLatched) {
+                s_crouchLatched = false;
+            }
+        }
+        s_crouchWasDown = crouchDown;
+        s_toggleWasDown = toggleDown;
+
+        if (toggleVk > 0 && toggleVk < 256 && toggleVk != engineCrouchVk) {
+            st[0x004 + toggleVk] = 0;
+        }
+        if (engineCrouchVk > 0 && engineCrouchVk < 256 && !uiPointer) {
+            if (s_crouchSettings.toggleCrouch || s_crouchLatched) {
+                const bool active = s_crouchSettings.toggleCrouch ? s_crouchLatched : (crouchDown || s_crouchLatched);
+                st[0x004 + engineCrouchVk] = active ? 0x80 : 0;
+            }
+        }
     }
 
     // Vehicle 1st-person camera keybind (SETTINGS > CONTROLS > KEYBOARD & MOUSE, unbound by default):

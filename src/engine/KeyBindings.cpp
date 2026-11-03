@@ -22,6 +22,7 @@ const uint8_t kDefaultKeys[kActionCount] = {
     /* 56 */ '3',        'G',      'L',        VK_UP,      VK_DOWN,    'P',        VK_SPACE,   VK_LCONTROL,
     /* 64 */ 0,          0,        0,          'V',        0,          'Y',        'T',        'P',
     /* 72 */ 0,          VK_F9,     VK_F10,     VK_F11,   // voice channels: F1-F6 are the default paddle keys
+    /* 76 */ VK_F5,      0,                               // 3rd-person camera (default F5), Toggle crouch (unbound)
 };
 
 // Slot numbers are MCC's GameAbstractButton order (the enum list in MCC-Win64-Shipping.exe, 66 entries
@@ -40,6 +41,7 @@ const ActionInfo kActions[] = {
     { 19, "Move right", ActionGroup::Movement },
     { 0, "Jump", ActionGroup::Movement },
     { 9, "Crouch", ActionGroup::Movement },
+    { kActionToggleCrouch, "Crouch (toggle)", ActionGroup::Movement },
     // Actions
     { 8, "Fire", ActionGroup::Actions },
     { 10, "Zoom", ActionGroup::Actions },
@@ -64,6 +66,7 @@ const ActionInfo kActions[] = {
     { kActionChatTeam, "Chat to team", ActionGroup::Actions },
     { kActionChatParty, "Chat to party", ActionGroup::Actions },
     { kActionChatOpen, "Open chat", ActionGroup::Actions },
+    { kActionThirdPerson, "3rd person camera", ActionGroup::Actions },
     { kActionVehicleFirstPerson, "Vehicle 1st person", ActionGroup::Actions },
     // Vehicle
     { kActionVehicleFirstPerson, "Vehicle 1st person", ActionGroup::Vehicle },

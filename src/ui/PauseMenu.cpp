@@ -1966,7 +1966,9 @@ void PauseMenu::RenderImpl(IDXGISwapChain *swapChain, bool loading,
                            bool clear, const std::function<void()> &extraOverlay) {
   // F5 edge-toggles the third-person camera (physical key; this runs every engine frame).
   // Not while F5 is standing in for a controller paddle.
-  CameraThirdPerson::PollHotkey(!ReachHost::IsPaddleKey(VK_F5) && (GetAsyncKeyState(VK_F5) & 0x8000) != 0);
+  const int tpVk = KeyBindings::EffectiveKey(KeyBindings::kActionThirdPerson);
+  const bool tpBlocked = s_open.load() || loading || s_gameOver.load() || ForgeMenu::WantsPointer() || SocialOverlay::IsTyping();
+  CameraThirdPerson::PollHotkey(!tpBlocked && tpVk > 0 && tpVk < 256 && !ReachHost::IsPaddleKey(tpVk) && (GetAsyncKeyState(tpVk) & 0x8000) != 0);
   const bool gameOver = s_gameOver.load();
   // -postgame-test: force the clean GAME OVER panel so its composition over the engine's post-game UI can be captured
   // without playing a match to its score limit.

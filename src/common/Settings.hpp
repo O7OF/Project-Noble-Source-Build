@@ -44,6 +44,7 @@ struct SettingsData {
     std::map<int, int> keyOverrides; // profile action index -> virtual-key code
     int wheelUpAction = 4;         // action the mouse wheel's up notches trigger (-1 = nothing); 4 = change weapon
     int wheelDownAction = 4;       // same for down notches (engine key 0xAE; up is 0xAF)
+    bool toggleCrouch = false;     // true: Crouch key toggles crouch on/off; false: hold Crouch key to crouch
     bool padVibration = true;      // controller rumble (host slot 39 -> XInputSetState)
     float padLookSpeedX = 2.0f;    // controller look speed 1.00..10.00; 2.00 = Reach's stock speed (see InputTuning)
     float padLookSpeedY = 2.0f;    // vertical
@@ -54,6 +55,7 @@ struct SettingsData {
     int padLayout = 0;             // Halo: Reach button layout (engine/PadLayouts.hpp); 0 = Default
     int padStickLayout = 0;        // 0 = Default (left moves, right looks), 1 = swapped. One "preset" row with padLayout
     bool padToggleZoom = true;     // false: zoom only while the button is held
+    bool padToggleCrouch = false;  // true: press crouch button to stay crouched; false: hold crouch button
     // Per-action controller bindings, overriding the button layout: action key -> input (PadLayouts::InputBit), -1 = none.
     std::map<std::string, int> padBindings;    // Noble flips the right stick's y before the engine sees it
     float padLeftDeadZone = 0.0f;  // extra radial dead zone Noble applies (0..0.5), on top of the engine's own

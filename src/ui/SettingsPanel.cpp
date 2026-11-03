@@ -1282,6 +1282,16 @@ void SettingsPanel::RenderKeyboardMouse() {
             if (!Row(label.c_str(), "Click (or press Enter), then press the key or mouse button you want. Esc cancels, right-click unbinds, Delete puts the default back.",
                      When::Apply, defText, current != saved)) continue;
             KeyBindValue(action);
+            if (action == 9) {
+                const SettingsData defData;
+                if (Row("TOGGLE CROUCH", "On: press your Crouch key once to stay crouched, and press it again to stand up. Off: crouched only while you hold the Crouch key.",
+                        When::Apply, defData.toggleCrouch ? "On" : "Off", m_edit.toggleCrouch != m_saved.toggleCrouch)) {
+                    if (ToggleValue(m_edit.toggleCrouch)) {
+                        Settings::Get().Update(m_edit);
+                        m_saved = Settings::Get().Snapshot();
+                    }
+                }
+            }
         }
     }
 }
@@ -1451,6 +1461,10 @@ void SettingsPanel::RenderController() {
     if (Row("TOGGLE ZOOM", "On: press to zoom in, press again to zoom out. Off: zoomed only while you hold the button.", When::Apply,
             def.padToggleZoom ? "On" : "Off", m_edit.padToggleZoom != m_saved.padToggleZoom)) {
         ToggleValue(m_edit.padToggleZoom);
+    }
+    if (Row("TOGGLE CROUCH", "On: press the crouch button once to stay crouched, and press it again to stand up. Off: crouched only while you hold the button.", When::Apply,
+            def.padToggleCrouch ? "On" : "Off", m_edit.padToggleCrouch != m_saved.padToggleCrouch)) {
+        ToggleValue(m_edit.padToggleCrouch);
     }
     Section("STICKS");
     auto speed = [&](const char* label, const char* text, float& v, float saved) {
@@ -1703,7 +1717,7 @@ int SettingsPanel::CountDiff(const SettingsData& a, const SettingsData& b, Cat c
         return (a.playerName != b.playerName) + (a.serviceTag != b.serviceTag);
     case Cat::KeyboardMouse: {
         int n = f(a.mouseSensitivity, b.mouseSensitivity) + f(a.mouseSensitivityY, b.mouseSensitivityY) + (a.invertLook != b.invertLook) +
-                (a.wheelUpAction != b.wheelUpAction) + (a.wheelDownAction != b.wheelDownAction);
+                (a.wheelUpAction != b.wheelUpAction) + (a.wheelDownAction != b.wheelDownAction) + (a.toggleCrouch != b.toggleCrouch);
         for (int i = 0; i < KeyBindings::kActionCount; ++i) {
             auto ia = a.keyOverrides.find(i);
             auto ib = b.keyOverrides.find(i);
@@ -1717,7 +1731,7 @@ int SettingsPanel::CountDiff(const SettingsData& a, const SettingsData& b, Cat c
         return f(a.padLookSpeedX, b.padLookSpeedX) + f(a.padLookSpeedY, b.padLookSpeedY) + (a.padInvertLook != b.padInvertLook) +
                (a.padPaddleKeys != b.padPaddleKeys) +
                (a.padLayout != b.padLayout) + (a.padStickLayout != b.padStickLayout) + (a.padBindings != b.padBindings) +
-               (a.padToggleZoom != b.padToggleZoom) +
+               (a.padToggleZoom != b.padToggleZoom) + (a.padToggleCrouch != b.padToggleCrouch) +
                f(a.padLeftDeadZone, b.padLeftDeadZone) + f(a.padRightDeadZone, b.padRightDeadZone) +
                (a.padVibration != b.padVibration) + f(a.padVibrationStrength, b.padVibrationStrength);
     case Cat::Online:
@@ -1768,11 +1782,11 @@ SettingsData SettingsPanel::WithDefaults(SettingsData e, Cat c) {
         break;
     case Cat::KeyboardMouse:
         e.mouseSensitivity = d.mouseSensitivity; e.mouseSensitivityY = d.mouseSensitivityY; e.invertLook = d.invertLook;
-        e.wheelUpAction = d.wheelUpAction; e.wheelDownAction = d.wheelDownAction; e.keyOverrides.clear();
+        e.wheelUpAction = d.wheelUpAction; e.wheelDownAction = d.wheelDownAction; e.toggleCrouch = d.toggleCrouch; e.keyOverrides.clear();
         break;
     case Cat::Controller:
         e.padLookSpeedX = d.padLookSpeedX; e.padLookSpeedY = d.padLookSpeedY; e.padInvertLook = d.padInvertLook;
-        e.padPaddleKeys = d.padPaddleKeys;
+        e.padPaddleKeys = d.padPaddleKeys; e.padToggleZoom = d.padToggleZoom; e.padToggleCrouch = d.padToggleCrouch;
         e.padLeftDeadZone = d.padLeftDeadZone; e.padRightDeadZone = d.padRightDeadZone;
         e.padVibration = d.padVibration; e.padVibrationStrength = d.padVibrationStrength;
         break;
